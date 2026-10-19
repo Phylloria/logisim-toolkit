@@ -1,4 +1,4 @@
-"""Standalone command-line interface for the Phylloria Logisim toolkit."""
+"""Standalone command-line interface for the Logisim toolkit."""
 from __future__ import annotations
 
 import argparse

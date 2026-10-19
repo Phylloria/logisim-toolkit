@@ -1,10 +1,10 @@
-# Phylloria Logisim
+# Logisim Toolkit
 
-[![Tests](https://github.com/Phylloria/phylloria-logisim/actions/workflows/tests.yml/badge.svg)](https://github.com/Phylloria/phylloria-logisim/actions/workflows/tests.yml)
+[![Tests](https://github.com/Phylloria/logisim-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/Phylloria/logisim-toolkit/actions/workflows/tests.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-`phylloria-logisim` is a standalone toolkit for creating, inspecting, checking,
+`logisim-toolkit` is a standalone toolkit for creating, inspecting, checking,
 generating, and validating native Logisim 2.7.1 projects.
 
 It is designed to work from a normal terminal, CI, or any AI coding agent. The
@@ -50,20 +50,20 @@ Detailed support and boundaries are documented in
 ## Install
 
 ```powershell
-pipx install "git+https://github.com/Phylloria/phylloria-logisim.git"
+pipx install "git+https://github.com/Phylloria/logisim-toolkit.git"
 ```
 
 With PNG layout previews:
 
 ```powershell
-pipx install "phylloria-logisim[render] @ git+https://github.com/Phylloria/phylloria-logisim.git"
+pipx install "logisim-toolkit[render] @ git+https://github.com/Phylloria/logisim-toolkit.git"
 ```
 
 From a clone:
 
 ```powershell
-git clone https://github.com/Phylloria/phylloria-logisim.git
-cd phylloria-logisim
+git clone https://github.com/Phylloria/logisim-toolkit.git
+cd logisim-toolkit
 python -m pip install .
 ```
 

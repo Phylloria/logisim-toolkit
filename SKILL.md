@@ -8,7 +8,7 @@ description: Design and draw digital logic circuits in Logisim by creating or ed
 Create a circuit the user can open, inspect, and operate in Logisim. The primary output is a native `.circ` project with the requested behavior and readable layout. A diagram or truth table alone is not a substitute when the user asked for a Logisim circuit.
 
 This file is the optional Codex adapter for the standalone
-`phylloria-logisim` toolkit. The same functionality is available without
+`logisim-toolkit` project. The same functionality is available without
 Codex:
 
 ```powershell

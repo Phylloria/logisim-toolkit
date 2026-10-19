@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "phylloria-logisim"
+name = "logisim-toolkit"
 version = "1.0.0"
 description = "Standalone design, inspection, checking, and validation toolkit for Logisim 2.7.1"
 readme = "README.md"
@@ -20,19 +20,19 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/Phylloria/phylloria-logisim"
-Documentation = "https://github.com/Phylloria/phylloria-logisim/tree/main/docs"
-Issues = "https://github.com/Phylloria/phylloria-logisim/issues"
-Changelog = "https://github.com/Phylloria/phylloria-logisim/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Phylloria/logisim-toolkit"
+Documentation = "https://github.com/Phylloria/logisim-toolkit/tree/main/docs"
+Issues = "https://github.com/Phylloria/logisim-toolkit/issues"
+Changelog = "https://github.com/Phylloria/logisim-toolkit/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 render = ["Pillow>=10"]
 
 [project.scripts]
-logisim-toolkit = "phylloria_logisim.cli:main"
+logisim-toolkit = "logisim_toolkit.cli:main"
 
 [tool.setuptools]
-packages = ["phylloria_logisim"]
+packages = ["logisim_toolkit"]
 
 [tool.setuptools.package-dir]
-phylloria_logisim = "scripts"
+logisim_toolkit = "scripts"

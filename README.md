@@ -2,7 +2,6 @@
 
 [![Tests](https://github.com/Phylloria/logisim-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/Phylloria/logisim-toolkit/actions/workflows/tests.yml)
 [![Python](https://img.shields.io/badge/python-3.10%2B-3776AB)](pyproject.toml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 `logisim-toolkit` is a standalone toolkit for creating, inspecting, checking,
 generating, and validating native Logisim 2.7.1 projects.
@@ -178,17 +177,5 @@ The primary target is Logisim 2.7.1. RAM, ROM, arbitrary plugins, variable-input
 clocked replay, and Logisim Evolution 4.x formatting remain documented
 boundaries rather than implicit claims.
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). New component support should include:
-
-- verified port geometry,
-- simulation behavior,
-- a small runtime probe,
-- at least one regression test,
-- an update to the capability matrix.
-
-## License
-
-Toolkit source is MIT licensed. Bundled circuit examples may retain separate
-original provenance; see [NOTICE.md](NOTICE.md).
+Bundled circuit examples may retain separate original provenance; see
+[NOTICE.md](NOTICE.md).

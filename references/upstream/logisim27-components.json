@@ -1,0 +1,99 @@
+{
+  "source": "Logisim 2.7.1 source, com.cburch.logisim.std.*",
+  "notes": [
+    "For memory components in Logisim 2.7.1, loc is the DATA port coordinate, not the graphical top-left corner.",
+    "For Register, Counter, Adder, Comparator, and Multiplexer, loc is the logical output coordinate.",
+    "Register EN defaults enabled when floating; Register CLR is inactive when floating.",
+    "Offsets are relative to the component loc attribute."
+  ],
+  "components": {
+    "ROM": {
+      "library": "4",
+      "name": "ROM",
+      "locAnchor": "DATA",
+      "ports": {
+        "DATA": { "dx": 0, "dy": 0, "type": "inout" },
+        "ADDR": { "dx": -140, "dy": 0, "type": "input" },
+        "CS": { "dx": -90, "dy": 40, "type": "input" }
+      }
+    },
+    "RAM": {
+      "library": "4",
+      "name": "RAM",
+      "locAnchor": "DATA",
+      "ports": {
+        "DATA": { "dx": 0, "dy": 0, "type": "inout" },
+        "ADDR": { "dx": -140, "dy": 0, "type": "input" },
+        "CS": { "dx": -90, "dy": 40, "type": "input" }
+      }
+    },
+    "Counter": {
+      "library": "4",
+      "name": "Counter",
+      "locAnchor": "Q",
+      "ports": {
+        "Q": { "dx": 0, "dy": 0, "type": "output" },
+        "D": { "dx": -30, "dy": 0, "type": "input" },
+        "CLK": { "dx": -20, "dy": 20, "type": "input" },
+        "CLR": { "dx": -10, "dy": 20, "type": "input" },
+        "LOAD": { "dx": -30, "dy": -10, "type": "input" },
+        "COUNT": { "dx": -30, "dy": 10, "type": "input" },
+        "CARRY": { "dx": 0, "dy": 10, "type": "output" }
+      }
+    },
+    "Register": {
+      "library": "4",
+      "name": "Register",
+      "locAnchor": "Q",
+      "ports": {
+        "Q": { "dx": 0, "dy": 0, "type": "output" },
+        "D": { "dx": -30, "dy": 0, "type": "input" },
+        "CLK": { "dx": -20, "dy": 20, "type": "input" },
+        "CLR": { "dx": -10, "dy": 20, "type": "input" },
+        "EN": { "dx": -30, "dy": 10, "type": "input" }
+      }
+    },
+    "Adder": {
+      "library": "3",
+      "name": "Adder",
+      "locAnchor": "OUT",
+      "ports": {
+        "IN0": { "dx": -40, "dy": -10, "type": "input" },
+        "IN1": { "dx": -40, "dy": 10, "type": "input" },
+        "OUT": { "dx": 0, "dy": 0, "type": "output" },
+        "C_IN": { "dx": -20, "dy": -20, "type": "input" },
+        "C_OUT": { "dx": -20, "dy": 20, "type": "output" }
+      }
+    },
+    "Comparator": {
+      "library": "3",
+      "name": "Comparator",
+      "locAnchor": "EQ",
+      "ports": {
+        "IN0": { "dx": -40, "dy": -10, "type": "input" },
+        "IN1": { "dx": -40, "dy": 10, "type": "input" },
+        "GT": { "dx": 0, "dy": -10, "type": "output" },
+        "EQ": { "dx": 0, "dy": 0, "type": "output" },
+        "LT": { "dx": 0, "dy": 10, "type": "output" }
+      }
+    },
+    "Multiplexer2": {
+      "library": "2",
+      "name": "Multiplexer",
+      "locAnchor": "OUT",
+      "assumptions": {
+        "facing": "east",
+        "select": 1,
+        "selectLocation": "bottom-left",
+        "enable": true
+      },
+      "ports": {
+        "IN0": { "dx": -30, "dy": -10, "type": "input" },
+        "IN1": { "dx": -30, "dy": 10, "type": "input" },
+        "SELECT": { "dx": -20, "dy": 20, "type": "input" },
+        "ENABLE": { "dx": -10, "dy": 20, "type": "input" },
+        "OUT": { "dx": 0, "dy": 0, "type": "output" }
+      }
+    }
+  }
+}

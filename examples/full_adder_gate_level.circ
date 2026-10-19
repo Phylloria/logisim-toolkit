@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project source="2.7.1" version="1.0">
+  <lib desc="#Wiring" name="0"/><lib desc="#Gates" name="1"/>
+  <main name="FullAdder"/><options><a name="gateUndefined" val="ignore"/><a name="simlimit" val="1000"/><a name="simrand" val="0"/></options>
+  <circuit name="FullAdder"><a name="circuit" val="FullAdder"/>
+    <comp lib="0" loc="(100,100)" name="Pin"><a name="facing" val="east"/><a name="tristate" val="false"/><a name="label" val="A"/></comp>
+    <comp lib="0" loc="(100,300)" name="Pin"><a name="facing" val="east"/><a name="tristate" val="false"/><a name="label" val="B"/></comp>
+    <comp lib="0" loc="(100,500)" name="Pin"><a name="facing" val="east"/><a name="tristate" val="false"/><a name="label" val="CIN"/></comp>
+    <comp lib="1" loc="(350,200)" name="XOR Gate"><a name="inputs" val="2"/><a name="facing" val="east"/></comp>
+    <comp lib="1" loc="(550,200)" name="XOR Gate"><a name="inputs" val="2"/><a name="facing" val="east"/></comp>
+    <comp lib="1" loc="(350,400)" name="AND Gate"><a name="inputs" val="2"/><a name="facing" val="east"/></comp>
+    <comp lib="1" loc="(550,400)" name="AND Gate"><a name="inputs" val="2"/><a name="facing" val="east"/></comp>
+    <comp lib="1" loc="(750,400)" name="OR Gate"><a name="inputs" val="2"/><a name="facing" val="east"/></comp>
+    <comp lib="0" loc="(900,200)" name="Pin"><a name="facing" val="west"/><a name="output" val="true"/><a name="label" val="SUM"/><a name="labelloc" val="east"/></comp>
+    <comp lib="0" loc="(900,400)" name="Pin"><a name="facing" val="west"/><a name="output" val="true"/><a name="label" val="COUT"/><a name="labelloc" val="east"/></comp>
+    <wire from="(100,100)" to="(180,100)"/><wire from="(180,100)" to="(180,180)"/><wire from="(180,180)" to="(300,180)"/><wire from="(180,100)" to="(180,380)"/><wire from="(180,380)" to="(300,380)"/>
+    <wire from="(100,300)" to="(220,300)"/><wire from="(220,300)" to="(220,220)"/><wire from="(220,220)" to="(300,220)"/><wire from="(220,300)" to="(220,420)"/><wire from="(220,420)" to="(300,420)"/>
+    <wire from="(350,200)" to="(480,200)"/><wire from="(480,200)" to="(480,180)"/><wire from="(480,180)" to="(500,180)"/><wire from="(480,200)" to="(480,380)"/><wire from="(480,380)" to="(500,380)"/>
+    <wire from="(100,500)" to="(460,500)"/><wire from="(460,500)" to="(460,220)"/><wire from="(460,220)" to="(500,220)"/><wire from="(460,500)" to="(460,420)"/><wire from="(460,420)" to="(500,420)"/>
+    <wire from="(550,200)" to="(900,200)"/>
+    <wire from="(350,400)" to="(400,400)"/><wire from="(400,400)" to="(400,360)"/><wire from="(400,360)" to="(700,360)"/><wire from="(700,360)" to="(700,380)"/><wire from="(550,400)" to="(600,400)"/><wire from="(600,400)" to="(600,440)"/><wire from="(600,440)" to="(680,440)"/><wire from="(680,440)" to="(680,420)"/><wire from="(680,420)" to="(700,420)"/><wire from="(750,400)" to="(900,400)"/>
+  </circuit>
+</project>

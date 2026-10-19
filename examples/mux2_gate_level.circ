@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project source="2.7.1" version="1.0">
+  <lib desc="#Wiring" name="0"/>
+  <lib desc="#Gates" name="1"/>
+  <main name="main"/>
+  <options>
+    <a name="gateUndefined" val="ignore"/>
+    <a name="simlimit" val="1000"/>
+    <a name="simrand" val="0"/>
+  </options>
+  <circuit name="main">
+    <a name="circuit" val="main"/>
+    <comp lib="0" loc="(100,100)" name="Pin">
+      <a name="facing" val="east"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="D0"/>
+    </comp>
+    <comp lib="0" loc="(100,300)" name="Pin">
+      <a name="facing" val="east"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="D1"/>
+    </comp>
+    <comp lib="0" loc="(100,500)" name="Pin">
+      <a name="facing" val="east"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
+    </comp>
+    <comp lib="1" loc="(300,500)" name="NOT Gate">
+      <a name="facing" val="east"/>
+    </comp>
+    <comp lib="1" loc="(500,160)" name="AND Gate">
+      <a name="inputs" val="2"/>
+      <a name="facing" val="east"/>
+    </comp>
+    <comp lib="1" loc="(500,360)" name="AND Gate">
+      <a name="inputs" val="2"/>
+      <a name="facing" val="east"/>
+    </comp>
+    <comp lib="1" loc="(700,260)" name="OR Gate">
+      <a name="inputs" val="2"/>
+      <a name="facing" val="east"/>
+    </comp>
+    <comp lib="0" loc="(760,260)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="Y"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <wire from="(100,100)" to="(200,100)"/>
+    <wire from="(200,100)" to="(200,140)"/>
+    <wire from="(200,140)" to="(450,140)"/>
+    <wire from="(100,300)" to="(200,300)"/>
+    <wire from="(200,300)" to="(200,340)"/>
+    <wire from="(200,340)" to="(450,340)"/>
+    <wire from="(100,500)" to="(120,500)"/>
+    <wire from="(120,380)" to="(450,380)"/>
+    <wire from="(120,380)" to="(120,500)"/>
+    <wire from="(100,500)" to="(270,500)"/>
+    <wire from="(300,500)" to="(400,500)"/>
+    <wire from="(400,180)" to="(450,180)"/>
+    <wire from="(400,180)" to="(400,500)"/>
+    <wire from="(500,160)" to="(550,160)"/>
+    <wire from="(550,160)" to="(550,240)"/>
+    <wire from="(550,240)" to="(650,240)"/>
+    <wire from="(500,360)" to="(600,360)"/>
+    <wire from="(600,280)" to="(600,360)"/>
+    <wire from="(600,280)" to="(650,280)"/>
+    <wire from="(700,260)" to="(760,260)"/>
+  </circuit>
+</project>

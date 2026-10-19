@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phylloria-logisim"
+version = "1.0.0"
+description = "Standalone design, inspection, checking, and validation toolkit for Logisim 2.7.1"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Phylloria" }]
+keywords = ["logisim", "digital-logic", "circuit", "cli", "testing"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = []
+
+[project.optional-dependencies]
+render = ["Pillow>=10"]
+
+[project.scripts]
+logisim-toolkit = "phylloria_logisim.cli:main"
+
+[tool.setuptools]
+packages = ["phylloria_logisim"]
+
+[tool.setuptools.package-dir]
+phylloria_logisim = "scripts"

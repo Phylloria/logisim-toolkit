@@ -1,11 +1,12 @@
-# Phylloria_Logisim
+# Phylloria Logisim Toolkit
 
-A reusable Codex skill and example collection for designing, checking, and
-validating native Logisim 2.7.1 projects.
+A standalone Python toolkit for designing, checking, generating, and validating
+native Logisim 2.7.1 projects. It works from a normal terminal, CI, or any
+AI coding agent. Codex is an optional integration, not a requirement.
 
-The skill moves beyond hand-drawn XML: it includes an independent bit-level
-circuit model, structural checks, real Logisim harnesses, clocked validation,
-and generators for flat, direct-wire, and hierarchical layouts.
+The toolkit includes an independent bit-level circuit model, structural checks,
+real Logisim harnesses, clocked validation, and generators for flat,
+direct-wire, and hierarchical layouts.
 
 ## Highlights
 
@@ -23,11 +24,35 @@ and generators for flat, direct-wire, and hierarchical layouts.
   - multiple drivers.
 - Real Logisim bus, vector, and clocked runtime validation.
 
+## Install
+
+```powershell
+pipx install "git+https://github.com/Phylloria/Phylloria_Logisim.git"
+```
+
+For preview rendering:
+
+```powershell
+pipx install "phylloria-logisim[render] @ git+https://github.com/Phylloria/Phylloria_Logisim.git"
+```
+
+Or install from a clone:
+
+```powershell
+git clone https://github.com/Phylloria/Phylloria_Logisim.git
+cd Phylloria_Logisim
+python -m pip install .
+```
+
+The installed command is `logisim-toolkit`.
+
 ## Repository Layout
 
 ```text
-SKILL.md                 Codex skill instructions
-README.md                Repository overview
+pyproject.toml           Installable Python package
+scripts/cli.py           Standalone CLI
+SKILL.md                 Optional Codex adapter
+AGENTS.md                Agent-neutral operating instructions
 scripts/                 Generators, checkers, runtime validators
 references/              Logisim 2.7.1 notes and capability matrix
 reference/               Small component probes and circuit examples
@@ -36,33 +61,34 @@ tests/                   End-to-end regression suite
 showcase/                Full-size completed circuits
 ```
 
-## Install As A Codex Skill
-
-Clone the repository, then place it under the Codex skills directory with a
-stable name:
-
-```powershell
-git clone https://github.com/Phylloria/Phylloria_Logisim.git
-Copy-Item -Recurse Phylloria_Logisim "$env:USERPROFILE\.codex\skills\logisim"
-```
-
-Read `SKILL.md` for the full authoring workflow. The capability matrix is in
-`references/capability-matrix.md`.
-
 ## Quick Validation
 
 ```powershell
-python scripts/check_universal.py design.circ --table vectors.tsv
-python scripts/validate_logisim.py design.circ --table vectors.tsv `
+logisim-toolkit check design.circ --table vectors.tsv
+logisim-toolkit validate design.circ --table vectors.tsv `
   --logisim C:\Logisim\logisim-win-2.7.1.exe
 ```
 
 Sequential circuits:
 
 ```powershell
-python scripts/check_universal.py state.circ --table sequence.tsv --sequential
-python scripts/validate_logisim_clocked.py state.circ `
+logisim-toolkit check state.circ --table sequence.tsv --sequential
+logisim-toolkit validate-clocked state.circ `
   --clock CLK --cycles 8 --input D=5 --input EN=1
+```
+
+Generate a complete circuit:
+
+```powershell
+logisim-toolkit generate encoder-8to3 --out encoder_8to3.circ
+logisim-toolkit check encoder_8to3.circ `
+  --table encoder_8to3_vectors.tsv --require-exhaustive
+```
+
+List commands:
+
+```powershell
+logisim-toolkit list-tools
 ```
 
 ## Included Showcase
@@ -74,6 +100,13 @@ python scripts/validate_logisim_clocked.py state.circ `
 
 All showcases include the native `.circ`, reference vectors, previews, and
 verification notes.
+
+## Agents And Editors
+
+- Codex: copy or link this repository to the Codex skills directory; `SKILL.md`
+  remains a thin adapter over the same CLI and scripts.
+- Claude Code, Cursor, and other agents: point them to `AGENTS.md`.
+- Human terminal/CI use: call `logisim-toolkit` directly.
 
 ## Run The Regression
 
@@ -93,3 +126,6 @@ Logisim 2.7.1 execution.
 - Bus Constants must use the 2.7.1 `0x...` hexadecimal form.
 - Unsupported components and format boundaries are documented instead of being
   silently treated as validated.
+
+See `docs/usage.md` for command reference and automation patterns. The
+capability matrix is in `references/capability-matrix.md`.

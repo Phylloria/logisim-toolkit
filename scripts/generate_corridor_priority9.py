@@ -25,7 +25,7 @@ def build_stage() -> Stage:
     for index in range(1, 10):
         stage.inputs.append(Pin(
             f"I{index}",
-            (60, 200 + index * 90),
+            (60, 120 + index * 90),
             False,
             "east",
         ))
@@ -35,7 +35,7 @@ def build_stage() -> Stage:
             f"HIGH{index}",
             "OR",
             tuple(f"I{higher}" for higher in range(index + 1, 10)),
-            (600, 200 + index * 90),
+            (600, 120 + index * 90),
         ))
     for index in range(1, 9):
         inputs = ("I9",) if index == 8 else (f"HIGH{index}",)
@@ -43,14 +43,14 @@ def build_stage() -> Stage:
             f"N{index}",
             "NOT",
             inputs,
-            (800, 200 + index * 90),
+            (760, 120 + index * 90),
         ))
     for index in range(1, 9):
         stage.gates.append(Gate(
             f"T{index}",
             "AND",
             (f"I{index}", f"N{index}"),
-            (1000, 200 + index * 90),
+            (970, 120 + index * 90),
         ))
 
     bcd_terms = {
@@ -64,17 +64,17 @@ def build_stage() -> Stage:
             f"D{bit}",
             "OR",
             bcd_terms[bit],
-            (1300, 300 + bit * 180),
+            (1230, 220 + bit * 180),
         ))
         stage.gates.append(Gate(
             f"ND{bit}",
             "NOT",
             (f"D{bit}",),
-            (1500, 300 + bit * 180),
+            (1400, 220 + bit * 180),
         ))
         stage.outputs.append(Pin(
             f"nD{bit}",
-            (1650, 300 + bit * 180),
+            (1550, 220 + bit * 180),
             True,
             "west",
         ))
@@ -86,7 +86,7 @@ def build_stage() -> Stage:
                 sinks_by_input.setdefault(wanted, []).append((gate, terminal))
 
     corridor_wires = []
-    lane_bases = {800: 620, 1000: 830, 1300: 1080}
+    lane_bases = {760: 610, 970: 820, 1230: 1000}
     for index in range(1, 10):
         name = f"I{index}"
         source = stage.inputs[index - 1].point
@@ -129,14 +129,14 @@ def build_stage() -> Stage:
     stage.wires.extend(split_segments_at_endpoints(corridor_wires))
 
     for index in range(1, 8):
-        y = 200 + index * 90
-        stage.wires.append(((600, y), (770, y)))
+        y = 120 + index * 90
+        stage.wires.append(((600, y), (730, y)))
     for index in range(1, 9):
-        y = 200 + index * 90
+        y = 120 + index * 90
         stage.wires.extend([
-            ((800, y), (940, y)),
-            ((940, y), (940, y + 20)),
-            ((940, y + 20), (950, y + 20)),
+            ((760, y), (910, y)),
+            ((910, y), (910, y + 20)),
+            ((910, y + 20), (920, y + 20)),
         ])
 
     term_wires = []
@@ -152,7 +152,7 @@ def build_stage() -> Stage:
         sinks = sinks_by_signal.get(name, [])
         if not sinks:
             continue
-        lane_x = 1170 + (index - 1) * 10
+        lane_x = 1090 + (index - 1) * 10
         x, y = sources[name]
         ys = [y, *[point[1] for point in sinks]]
         term_wires.extend([
@@ -163,9 +163,9 @@ def build_stage() -> Stage:
     stage.wires.extend(split_segments_at_endpoints(term_wires))
 
     for bit in range(4):
-        y = 300 + bit * 180
-        stage.wires.append(((1300, y), (1470, y)))
-        stage.wires.append(((1500, y), (1650, y)))
+        y = 220 + bit * 180
+        stage.wires.append(((1230, y), (1370, y)))
+        stage.wires.append(((1400, y), (1550, y)))
 
     stage.wires = split_segments_at_endpoints(stage.wires)
     validate_stage_grid(stage)
@@ -211,10 +211,10 @@ def main() -> int:
     stage = build_stage()
     write_flat_project(stage, args.out, [
         ("9-KEY PRIORITY ENCODER - STAGED CORRIDOR LAYOUT", 60, 50),
-        ("SUPPRESSION OR", 570, 70),
-        ("INVERT", 770, 70),
-        ("ONE-HOT TERMS", 950, 70),
-        ("ACTIVE-LOW BCD", 1250, 70),
+        ("SUPPRESSION OR", 540, 70),
+        ("INVERT", 730, 70),
+        ("ONE-HOT TERMS", 930, 70),
+        ("ACTIVE-LOW BCD", 1190, 70),
     ])
     write_table(table_path)
     print(f"Circuit: {args.out}")

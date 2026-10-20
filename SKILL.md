@@ -310,7 +310,7 @@ regular but unnecessarily tall. Use staged corridors instead:
   local nets.
 
 `generate_corridor_priority9.py` is the worked example. Its 9-key active-low
-encoder uses 31 gates and 191 wire segments in a 1590x990 footprint, compared
+encoder uses 31 gates and 191 wire segments in a 1490x910 footprint, compared
 with 213 segments and a 1360x4840 footprint in the single-column reference.
 All 512 input masks pass in the independent model and real Logisim.
 

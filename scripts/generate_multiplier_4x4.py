@@ -24,6 +24,20 @@ INPUT_NAMES = [f"A{index}" for index in range(4)] + [
 ]
 OUTPUT_NAMES = [f"P{index}" for index in range(8)]
 
+A_Y = 90
+B_Y = 500
+INPUT_STEP = 90
+PP_X = 420
+PP_X_STEP = 140
+PP_Y = 90
+PP_Y_STEP = 110
+FA_STEP = 520
+ROW_STARTS = (0, 900, 1400, 1900)
+ROW_YS = (0, 600, 920, 1240)
+OUTPUT_X = 4100
+OUTPUT_Y = 1480
+OUTPUT_STEP = 50
+
 
 def add_ha(stage, prefix, x, y, a, b):
     sum_gate = Gate(f"{prefix}_S", "XOR", (a, b), (x, y))
@@ -46,9 +60,9 @@ def add_fa(stage, prefix, x, y, a, b, cin):
 def make_circuit() -> tuple[Stage, dict[int, str]]:
     stage = Stage("main")
     for index in range(4):
-        stage.inputs.append(Pin(f"A{index}", (100, 100 + index * 100), False, "east"))
+        stage.inputs.append(Pin(f"A{index}", (100, A_Y + index * INPUT_STEP), False, "east"))
     for index in range(4):
-        stage.inputs.append(Pin(f"B{index}", (100, 600 + index * 100), False, "east"))
+        stage.inputs.append(Pin(f"B{index}", (100, B_Y + index * INPUT_STEP), False, "east"))
 
     partial = {}
     for bit_b in range(4):
@@ -56,7 +70,7 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
             name = f"PP{bit_a}{bit_b}"
             stage.gates.append(Gate(
                 name, "AND", (f"A{bit_a}", f"B{bit_b}"),
-                (500 + bit_a * 160, 100 + bit_b * 120),
+                (PP_X + bit_a * PP_X_STEP, PP_Y + bit_b * PP_Y_STEP),
             ))
             partial[(bit_a, bit_b)] = name
 
@@ -67,11 +81,9 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
         3: partial[(3, 0)],
     }
     current = initial
-    row_starts = (0, 1400, 2000, 2600)
-    row_ys = (0, 650, 1000, 1350)
     for bit_b in range(1, 4):
-        x = row_starts[bit_b]
-        y = row_ys[bit_b]
+        x = ROW_STARTS[bit_b]
+        y = ROW_YS[bit_b]
         updated = {key: value for key, value in current.items() if key < bit_b}
 
         sum_signal, carry = add_ha(
@@ -81,34 +93,38 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
         updated[bit_b] = sum_signal
 
         sum_signal, carry = add_fa(
-            stage, f"R{bit_b}C{bit_b + 1}", x + 600, y,
+            stage, f"R{bit_b}C{bit_b + 1}", x + FA_STEP, y,
             partial[(1, bit_b)], current[bit_b + 1], carry,
         )
         updated[bit_b + 1] = sum_signal
 
         sum_signal, carry = add_fa(
-            stage, f"R{bit_b}C{bit_b + 2}", x + 1200, y,
+            stage, f"R{bit_b}C{bit_b + 2}", x + FA_STEP * 2, y,
             partial[(2, bit_b)], current[bit_b + 2], carry,
         )
         updated[bit_b + 2] = sum_signal
 
         if bit_b == 1:
             sum_signal, carry = add_ha(
-                stage, f"R{bit_b}C{bit_b + 3}", x + 1800, y,
+                stage, f"R{bit_b}C{bit_b + 3}", x + FA_STEP * 3, y,
                 partial[(3, bit_b)], carry,
             )
         else:
             sum_signal, carry = add_fa(
-                stage, f"R{bit_b}C{bit_b + 3}", x + 1800, y,
+                stage, f"R{bit_b}C{bit_b + 3}", x + FA_STEP * 3, y,
                 partial[(3, bit_b)], current[bit_b + 3], carry,
             )
         updated[bit_b + 3] = sum_signal
         updated[bit_b + 4] = carry
         current = updated
 
-    output_y = 1750
     for index in range(8):
-        pin = Pin(f"P{index}", (5000, output_y + index * 60), True, "west")
+        pin = Pin(
+            f"P{index}",
+            (OUTPUT_X, OUTPUT_Y + index * OUTPUT_STEP),
+            True,
+            "west",
+        )
         stage.outputs.append(pin)
 
     sinks: dict[str, list[tuple[int, int]]] = defaultdict(list)
@@ -135,7 +151,11 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
     if unused:
         raise ValueError(f"unused signal(s): {sorted(unused)}")
 
-    route_stage(stage, Bounds(0, 0, 5200, 2300), nets)
+    output_points = {pin.point for pin in stage.outputs}
+    nets.sort(key=lambda terminals: not any(
+        point in output_points for point in terminals[1:]
+    ))
+    route_stage(stage, Bounds(0, 0, 4300, 1900), nets)
     return stage, current
 
 
@@ -205,11 +225,11 @@ def main() -> int:
 
     for text, x, y in (
         ("4x4 ARRAY MULTIPLIER - GATE-LEVEL DIRECT-WIRE", 60, 50),
-        ("PARTIAL PRODUCTS: PPij = Ai AND Bj", 500, 70),
-        ("ACCUMULATION ROW B1", 1400, 610),
-        ("ACCUMULATION ROW B2", 2000, 960),
-        ("ACCUMULATION ROW B3", 2600, 1310),
-        ("8-BIT PRODUCT", 4900, 1700),
+        ("PARTIAL PRODUCTS: PPij = Ai AND Bj", PP_X, 60),
+        ("ACCUMULATION ROW B1", ROW_STARTS[1], ROW_YS[1] - 40),
+        ("ACCUMULATION ROW B2", ROW_STARTS[2], ROW_YS[2] - 40),
+        ("ACCUMULATION ROW B3", ROW_STARTS[3], ROW_YS[3] - 40),
+        ("8-BIT PRODUCT", OUTPUT_X - 100, OUTPUT_Y - 40),
     ):
         comp(circuit, "6", (x, y), "Text", (
             ("font", "SansSerif plain 14"), ("halign", "left"),

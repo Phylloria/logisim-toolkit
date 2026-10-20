@@ -44,13 +44,17 @@ product Pins. All 64 gates are visible at the same level.
 
 ## Direct Wiring
 
-- 898 direct orthogonal wire segments.
+- 907 direct orthogonal wire segments.
 - 0 Tunnel components.
 - 0 subcircuit instances.
 - Explicitly split same-net T junctions to avoid Logisim `E` values on dense
   direct-wire trees.
 - No overlapping collinear wires, dangling endpoints, gate-body crossings, or
   multiple-driver nets in the independent structural check.
+
+The measured component-and-wire footprint is 4000 by 1770 circuit units. The
+partial-product grid uses 140-by-110 spacing, and the three accumulation rows
+use 520-unit full-adder cells.
 
 ## Files
 

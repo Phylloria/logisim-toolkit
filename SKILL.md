@@ -314,6 +314,20 @@ encoder uses 31 gates and 191 wire segments in a 1490x910 footprint, compared
 with 213 segments and a 1360x4840 footprint in the single-column reference.
 All 512 input masks pass in the independent model and real Logisim.
 
+For signals crossing more than one layer, use a two-tier assignment:
+
+- Give the signal one bypass track in the top or bottom corridor.
+- At every target layer, drop it into that layer's local lane group.
+- Do not carry the same signal through every intermediate lane group.
+- Treat an earlier layer's output as another entry in the target layer's lane
+  group; inputs and previous-layer outputs share the same assignment rules.
+- Pack entries with interval assignment. Lanes may share an x-coordinate when
+  their vertical spans do not touch. Bypass tracks may share a y-coordinate
+  when their horizontal spans do not overlap.
+
+`scripts/corridor_planner.py` implements this interval coloring. This avoids
+widening a lane group for every signal that merely passes over a layer.
+
 For large direct-wire regressions, use the bundled 256-gate stress netlist:
 
 ```powershell
@@ -346,6 +360,7 @@ rip-up/reroute path without using any Tunnel.
 - `scripts/generate_flat_keypad.py` builds the single-circuit, direct-wire layout with no encapsulation and no Tunnels.
 - `scripts/generate_encoder_8to3.py` builds a flat gate-level 8-to-3 priority encoder with a 256-row exhaustive table.
 - `scripts/generate_corridor_priority9.py` builds the staged-corridor 9-key encoder.
+- `scripts/corridor_planner.py` packs local corridor lanes and bypass tracks.
 - `scripts/generate_multiplier_4x4.py` builds a flat gate-level 4x4 array multiplier with all 256 operand pairs.
 - `scripts/generate_stress_256.py` builds the 256-gate direct-wire scale regression.
 - `scripts/flat_builder.py` centralizes flat-stage net construction and project emission.

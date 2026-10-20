@@ -25,6 +25,11 @@ immediately before the target gate column. Lanes are local to one column rather
 than running through the complete circuit. The `T` terms use a second short
 lane group before the BCD gates.
 
+Signals that cross multiple layers keep one bypass track and drop only at their
+target layers. Lane and track positions use interval packing, so non-touching
+vertical spans may share an x-coordinate and non-overlapping bypass spans may
+share a y-coordinate.
+
 ## Size Comparison
 
 | Layout | Gates | Wires | Footprint |

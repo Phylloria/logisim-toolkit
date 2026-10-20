@@ -6,6 +6,7 @@ import argparse
 import csv
 from pathlib import Path
 
+from corridor_planner import assign_interval_tracks
 from direct_router import split_segments_at_endpoints
 from flat_builder import write_flat_project
 from generate_hierarchical_keypad import (
@@ -87,11 +88,28 @@ def build_stage() -> Stage:
 
     corridor_wires = []
     lane_bases = {760: 610, 970: 820, 1230: 1000}
+    bypass_spans = {}
+    for index in range(1, 10):
+        name = f"I{index}"
+        remaining = [
+            terminal for gate, terminal in sinks_by_input[name]
+            if gate.point[0] != 600
+        ]
+        if remaining:
+            bypass_spans[name] = (
+                100 + (index - 1) * 10,
+                max(point[0] for point in remaining),
+            )
+    bypass_tracks = assign_interval_tracks(
+        bypass_spans,
+        base=20,
+        step=10,
+    )
     for index in range(1, 10):
         name = f"I{index}"
         source = stage.inputs[index - 1].point
         local_lane = 100 + (index - 1) * 10
-        track_y = 20 + (index - 1) * 10
+        track_y = bypass_tracks[name]
         first_stage = [
             terminal for gate, terminal in sinks_by_input[name]
             if gate.point[0] == 600
@@ -139,7 +157,6 @@ def build_stage() -> Stage:
             ((910, y + 20), (920, y + 20)),
         ])
 
-    term_wires = []
     term_names = {f"T{index}" for index in range(1, 9)}
     sinks_by_signal = {}
     for gate in stage.gates:
@@ -147,12 +164,26 @@ def build_stage() -> Stage:
             if wanted in term_names:
                 sinks_by_signal.setdefault(wanted, []).append(terminal)
     sources = {gate.signal: gate.point for gate in stage.gates}
+    term_intervals = {}
+    for index in range(1, 9):
+        name = f"T{index}"
+        y = 120 + index * 90
+        term_intervals[name] = (
+            min([y, *[point[1] for point in sinks_by_signal[name]]]),
+            max([y, *[point[1] for point in sinks_by_signal[name]]]),
+        )
+    term_lanes = assign_interval_tracks(
+        term_intervals,
+        base=1090,
+        step=10,
+    )
+    term_wires = []
     for index in range(1, 9):
         name = f"T{index}"
         sinks = sinks_by_signal.get(name, [])
         if not sinks:
             continue
-        lane_x = 1090 + (index - 1) * 10
+        lane_x = term_lanes[name]
         x, y = sources[name]
         ys = [y, *[point[1] for point in sinks]]
         term_wires.extend([

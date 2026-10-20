@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from check_circ import parse
+from check_circ import evaluate, parse
 from circ_model import UniversalProject
 
 
@@ -109,6 +109,29 @@ class SemanticGeometryTest(unittest.TestCase):
             ))
             findings = UniversalProject(path).collect_findings()["main"]
             self.assertTrue(any("overlapping collinear wires" in item for item in findings))
+
+    def test_combinational_gate_cycle_is_reported(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="gate-cycle-test-") as temporary:
+            path = Path(temporary) / "gate_cycle.circ"
+            components = [
+                ("AND Gate", (300, 200), {"facing": "east", "inputs": "2"}),
+                ("AND Gate", (500, 200), {"facing": "east", "inputs": "2"}),
+            ]
+            write_project(path, [
+                ((300, 200), (400, 200)),
+                ((400, 200), (400, 180)),
+                ((400, 180), (450, 180)),
+                ((500, 200), (550, 200)),
+                ((550, 200), (550, 250)),
+                ((550, 250), (230, 250)),
+                ((230, 250), (230, 220)),
+                ((230, 220), (250, 220)),
+            ], components)
+            _, parsed_components, wires = parse(path)
+            result = evaluate(parsed_components, wires, {})
+            self.assertTrue(result["gate_cycles"])
+            findings = UniversalProject(path).collect_findings()["main"]
+            self.assertTrue(any("combinational gate loop" in item for item in findings))
 
 
 if __name__ == "__main__":

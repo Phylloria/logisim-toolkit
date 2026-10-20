@@ -68,6 +68,43 @@ def wire_line_index(wires):
     return horizontal, vertical
 
 
+def cyclic_sccs(nodes, edges) -> list[list]:
+    index = 0
+    stack = []
+    on_stack = set()
+    indices = {}
+    low = {}
+    result = []
+
+    def visit(node):
+        nonlocal index
+        indices[node] = low[node] = index
+        index += 1
+        stack.append(node)
+        on_stack.add(node)
+        for other in edges.get(node, ()):
+            if other not in indices:
+                visit(other)
+                low[node] = min(low[node], low[other])
+            elif other in on_stack:
+                low[node] = min(low[node], indices[other])
+        if low[node] == indices[node]:
+            component = []
+            while True:
+                other = stack.pop()
+                on_stack.remove(other)
+                component.append(other)
+                if other == node:
+                    break
+            if len(component) > 1 or node in edges.get(node, ()):
+                result.append(sorted(component))
+
+    for node in nodes:
+        if node not in indices:
+            visit(node)
+    return sorted(result)
+
+
 def collinear_overlap_pairs(wires) -> list[tuple[tuple, tuple]]:
     horizontal, vertical = wire_line_index(wires)
     findings = set()

@@ -22,6 +22,7 @@ from check_circ import Nets, gate_ports, point
 from logisim_geometry import (
     GATE_NAMES,
     collinear_overlap_pairs,
+    cyclic_sccs,
     gate_body_half_height,
     gate_input_axis,
     implicit_t_junctions,
@@ -449,6 +450,28 @@ class UniversalProject:
                     bit_parent.find(bit_node(root, bit))
                     for bit in range(port.width)
                 ]
+
+        gate_components = [
+            component for component in components if component.name in GATES
+        ]
+        gate_output_roots = defaultdict(list)
+        for gate_index, component in enumerate(gate_components):
+            for port in component.ports:
+                if port.role == "driver":
+                    gate_output_roots[nets.find(port.point)].append(gate_index)
+        gate_graph = {index: set() for index in range(len(gate_components))}
+        for gate_index, component in enumerate(gate_components):
+            for port in component.ports:
+                if port.role == "sink":
+                    gate_graph[gate_index].update(
+                        gate_output_roots.get(nets.find(port.point), ())
+                    )
+        for cycle in cyclic_sccs(gate_graph.keys(), gate_graph):
+            labels = ", ".join(
+                f"{gate_components[index].name}[{gate_components[index].index}]"
+                for index in cycle
+            )
+            findings.append(f"combinational gate loop: {labels}")
 
         drivers = defaultdict(list)
         input_pins = {}

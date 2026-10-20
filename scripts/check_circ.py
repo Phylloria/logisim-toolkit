@@ -23,6 +23,7 @@ from pathlib import Path
 from logisim_geometry import (
     GATE_NAMES,
     collinear_overlap_pairs,
+    cyclic_sccs,
     gate_body_half_height,
     gate_input_axis,
     implicit_t_junctions,
@@ -327,6 +328,26 @@ def evaluate(components, wires, forced: dict[str, int]):
         if output not in nets.wire_covered:
             floating.append(f"{component['name']} output")
 
+    gate_output_roots = defaultdict(list)
+    for gate_index, (_, _, _, output) in enumerate(gate_info):
+        gate_output_roots[nets.find(output)].append(gate_index)
+    gate_graph = {index: set() for index in range(len(gate_info))}
+    for gate_index, (_, _, inputs, _) in enumerate(gate_info):
+        for location in inputs:
+            gate_graph[gate_index].update(
+                gate_output_roots.get(nets.find(location), ())
+            )
+    gate_cycles = [
+        [
+            (
+                f"{gate_info[index][1]['name']}"
+                f"({gate_info[index][1]['x']},{gate_info[index][1]['y']})"
+            )
+            for index in cycle
+        ]
+        for cycle in cyclic_sccs(gate_graph.keys(), gate_graph)
+    ]
+
     gate_rects = []
     for _, component, inputs, output in gate_info:
         name = component["name"]
@@ -450,6 +471,7 @@ def evaluate(components, wires, forced: dict[str, int]):
         "output_pins": output_pins,
         "signal_values": signal_values,
         "floating": floating,
+        "gate_cycles": gate_cycles,
         "multiple": multiple,
         "missing_labels": missing_labels,
         "unsupported": unsupported,
@@ -473,6 +495,9 @@ def print_findings(result) -> None:
     print(f"Multiple-driver nets: {len(result['multiple'])}")
     for item in list(result["multiple"].values())[:12]:
         print("  ", item)
+    print(f"Combinational gate cycles: {len(result['gate_cycles'])}")
+    for cycle in result["gate_cycles"][:12]:
+        print("  ", " -> ".join(cycle))
     print(f"Missing labels: {len(result['missing_labels'])}")
     for item in result["missing_labels"][:12]:
         print("  ", item)
@@ -512,6 +537,7 @@ def main() -> int:
 
         failed = bool(
             result["floating"]
+            or result["gate_cycles"]
             or result["multiple"]
             or result["missing_labels"]
             or result["unsupported"]

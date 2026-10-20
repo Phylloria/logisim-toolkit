@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -79,6 +80,27 @@ class Stress256RegressionTest(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("Reference rows: 68; mismatches: 0", result.stdout)
+
+    def test_corridor_budget(self) -> None:
+        circuit = ET.parse(self.circuit).getroot().find("circuit")
+        self.assertIsNotNone(circuit)
+        directions = defaultdict(list)
+        for wire in circuit.findall("wire"):
+            start = tuple(
+                int(value) for value in wire.get("from")[1:-1].split(",")
+            )
+            end = tuple(
+                int(value) for value in wire.get("to")[1:-1].split(",")
+            )
+            orientation = "H" if start[1] == end[1] else "V"
+            directions[start].append(orientation)
+            directions[end].append(orientation)
+        bends = sum(
+            "H" in values and "V" in values
+            for values in directions.values()
+        )
+        self.assertLessEqual(len(circuit.findall("wire")), 2581)
+        self.assertLessEqual(bends, 1752)
 
     def test_real_logisim_when_available(self) -> None:
         logisim = os.environ.get("LOGISIM_JAR") or os.environ.get("LOGISIM_EXE")

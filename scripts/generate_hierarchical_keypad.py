@@ -101,12 +101,25 @@ def validate_stage_grid(stage: Stage, grid: int = 10) -> None:
         raise ValueError("off-grid layout:\n  " + "\n  ".join(errors))
 
 
+def corridor_lanes_for_stage(stage: Stage, bounds: Bounds, grid: int = 10) -> set[int]:
+    columns = sorted({gate.point[0] for gate in stage.gates})
+    if not columns:
+        return set()
+    lanes = set()
+    for left, right in zip(columns, columns[1:]):
+        lanes.update(range(left + grid * 2, right - grid * 8 + 1, grid * 2))
+    lanes.update(range(bounds.left + grid * 2, columns[0] - grid * 8 + 1, grid * 2))
+    lanes.update(range(columns[-1] + grid * 2, bounds.right - grid, grid * 2))
+    return lanes
+
+
 def route_stage(
     stage: Stage,
     bounds: Bounds,
     nets: list[list[Point] | WireNet],
     preferred_bend_cost: int | None = None,
     ripup_limit: int = 1,
+    corridor_mode: bool = False,
 ) -> None:
     router_grid = 10
     validate_stage_grid(stage, router_grid)
@@ -153,7 +166,16 @@ def route_stage(
         add_escape(pin.point, (-1, 0) if pin.facing == "west" else (0, -1))
 
     def configure_router() -> DirectRouter:
-        router = DirectRouter(bounds, grid=router_grid)
+        corridor_lanes = (
+            corridor_lanes_for_stage(stage, bounds, router_grid)
+            if corridor_mode
+            else None
+        )
+        router = DirectRouter(
+            bounds,
+            grid=router_grid,
+            corridor_lanes=corridor_lanes,
+        )
         for terminal, escape in escape_wires:
             router.occupy_wire(terminal, escape)
         for gate in stage.gates:

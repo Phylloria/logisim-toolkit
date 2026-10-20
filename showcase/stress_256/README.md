@@ -15,7 +15,7 @@ without hiding connectivity behind Tunnels or subcircuits.
   - 64 OR gates.
 - 16 scalar input Pins.
 - 4 scalar output Pins.
-- 2705 direct orthogonal wire segments.
+- 2581 direct orthogonal wire segments.
 - 0 Tunnels.
 - 0 subcircuits.
 - No high-level components.
@@ -24,6 +24,9 @@ The first column draws from all 16 inputs. Each later column combines its
 previous-column neighbors, creating repeated fanout and many local routing
 channels. The measured component-and-wire footprint is 7560 by 950 circuit
 units.
+
+The route is corridor-aware: vertical tracks prefer the empty bands between
+the 32 gate columns, reducing long zigzags without adding Tunnels.
 
 ## Files
 

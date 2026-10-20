@@ -12,7 +12,8 @@
 - Basic gates: 256.
 - Input Pins: 16.
 - Output Pins: 4.
-- Direct wires: 2705.
+- Direct wires: 2581.
+- Wire corner-or-junction points: 1752.
 - Tunnels: 0.
 - Subcircuits: 0.
 - Off-grid components or wire endpoints: 0.

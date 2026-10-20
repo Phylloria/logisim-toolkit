@@ -72,7 +72,12 @@ class DirectRouterTest(unittest.TestCase):
         class FakeRouter:
             instances = []
 
-            def __init__(self, bounds: Bounds, grid: int = 10) -> None:
+            def __init__(
+                self,
+                bounds: Bounds,
+                grid: int = 10,
+                corridor_lanes=None,
+            ) -> None:
                 self.routed: list[str | None] = []
                 self.instances.append(self)
 

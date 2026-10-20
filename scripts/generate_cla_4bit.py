@@ -109,6 +109,7 @@ def make_circuit() -> Stage:
         Bounds(0, 0, 3050, 1000),
         nets,
         preferred_bend_cost=20,
+        corridor_mode=True,
     )
     return stage
 

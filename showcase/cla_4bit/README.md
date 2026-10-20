@@ -68,7 +68,7 @@ There is no serial ripple chain from `C1` to `C4`.
 | XOR gates | 8 |
 | OR gates | 8 |
 | Total basic gates | 32 |
-| Direct wires | 334 |
+| Direct wires | 326 |
 | Tunnels | 0 |
 | Subcircuits | 0 |
 
@@ -76,7 +76,8 @@ The measured component-and-wire footprint is 2750 by 770 circuit units.
 Every gate is a two-input basic gate, which keeps the direct-wire fanout
 channels readable while preserving the lookahead structure. The router uses
 a high bend cost of 20 because this column-oriented layout can be routed with
-markedly fewer doglegs.
+markedly fewer doglegs. It also derives vertical corridor lanes from the gaps
+between gate columns so long vertical runs prefer regular inter-column tracks.
 
 ## Files
 

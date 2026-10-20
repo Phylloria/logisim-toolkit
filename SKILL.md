@@ -284,6 +284,14 @@ on Logisim's endpoint-to-interior junction behavior.
 Unconnected top-level Pins are rejected instead of being left as tempting but
 floating stubs.
 
+For column-oriented layouts, enable `corridor_mode`. `route_stage` derives
+preferred vertical lane x-coordinates from the empty bands between gate
+columns, then applies a small cost when a long vertical move leaves those
+lanes. The router may still leave a corridor when obstacles require it, so this
+does not hard-code brittle paths. Enable it only when measured wire and bend
+counts improve: it benefits the CLA and 256-gate stress layout, but was not
+worth keeping on the denser 4x4 multiplier.
+
 For large direct-wire regressions, use the bundled 256-gate stress netlist:
 
 ```powershell

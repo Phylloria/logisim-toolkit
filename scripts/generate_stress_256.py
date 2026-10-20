@@ -87,6 +87,7 @@ def make_circuit() -> Stage:
         nets,
         preferred_bend_cost=8,
         ripup_limit=2,
+        corridor_mode=True,
     )
     return stage
 

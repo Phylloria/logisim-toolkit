@@ -156,6 +156,8 @@ def route_net(
     sink_order: str = "near",
     bend_cost: int = MULTI_TERMINAL_BEND_COSTS[0],
     net_name: str | None = None,
+    corridor_lanes: set[int] | None = None,
+    corridor_cost: int = 2,
 ) -> list[tuple[Point, Point]]:
     """Route a source/fanout tree from terminals[0] to every other terminal."""
     if len(terminals) < 2:
@@ -232,6 +234,12 @@ def route_net(
                 next_cost = cost + 1 + (
                     bend_cost if previous_direction not in (-1, direction) else 0
                 )
+                if (
+                    corridor_lanes
+                    and direction in (2, 3)
+                    and next_point[0] not in corridor_lanes
+                ):
+                    next_cost += corridor_cost
                 next_state = (next_point[0], next_point[1], direction)
                 if next_cost >= costs.get(next_state, 1 << 60):
                     continue
@@ -268,7 +276,12 @@ def route_net(
 
 
 class DirectRouter:
-    def __init__(self, bounds: Bounds, grid: int = 10) -> None:
+    def __init__(
+        self,
+        bounds: Bounds,
+        grid: int = 10,
+        corridor_lanes: set[int] | None = None,
+    ) -> None:
         self.bounds = bounds
         self.grid = grid
         self.obstacles: set[Point] = set()
@@ -276,6 +289,7 @@ class DirectRouter:
         self.occupied: set[Point] = set()
         self.occupied_edges: set[tuple[Point, Point]] = set()
         self.occupied_junctions: set[Point] = set()
+        self.corridor_lanes = corridor_lanes
 
     def add_obstacle(self, rect: tuple[int, int, int, int]) -> None:
         self.obstacles.update(rect_points(rect, self.grid))
@@ -345,6 +359,7 @@ class DirectRouter:
                         sink_order=sink_order,
                         bend_cost=bend_cost,
                         net_name=net_name,
+                        corridor_lanes=self.corridor_lanes,
                     )
                 except RuntimeError as error:
                     last_error = error

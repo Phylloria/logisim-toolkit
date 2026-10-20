@@ -109,8 +109,8 @@ class CarryLookaheadAdderRegressionTest(unittest.TestCase):
             "H" in values and "V" in values
             for values in directions.values()
         )
-        self.assertLessEqual(len(circuit.findall("wire")), 334)
-        self.assertLessEqual(bends, 211)
+        self.assertLessEqual(len(circuit.findall("wire")), 326)
+        self.assertLessEqual(bends, 196)
 
     def test_real_logisim_when_available(self) -> None:
         logisim = os.environ.get("LOGISIM_JAR") or os.environ.get("LOGISIM_EXE")

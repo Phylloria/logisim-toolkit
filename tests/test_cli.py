@@ -26,6 +26,7 @@ class StandaloneCliTest(unittest.TestCase):
         self.assertIn("generate cla-4bit", result.stdout)
         self.assertIn("generate encoder-8to3", result.stdout)
         self.assertIn("generate multiplier-4x4", result.stdout)
+        self.assertIn("generate stress-256", result.stdout)
         self.assertIn("validate-clocked", result.stdout)
 
     def test_generates_and_checks_from_cli(self) -> None:

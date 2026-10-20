@@ -38,6 +38,8 @@ This toolkit adds an independent layer around Logisim:
 - Real Logisim bus, vector, and clocked runtime validation.
 - Layout checks for:
   - overlapping collinear wires,
+  - off-grid components and wire endpoints,
+  - implicit T junctions that touch a wire interior,
   - dangling wire endpoints,
   - wires entering gate bodies,
   - duplicate locations,
@@ -125,6 +127,7 @@ logisim-toolkit check encoder_8to3.circ `
 | `generate cla-4bit` | 4-bit block carry-lookahead adder |
 | `generate encoder-8to3` | 8-to-3 priority encoder |
 | `generate multiplier-4x4` | 4x4 gate-level array multiplier |
+| `generate stress-256` | 256-gate direct-wire stress netlist |
 | `generate keypad-flat` | Flat decimal keypad encoder |
 | `generate keypad-hierarchy` | Hierarchical decimal keypad encoder |
 | `generate probes` | Bus, splitter, state, and plexer probes |
@@ -138,6 +141,7 @@ Full command reference: [docs/usage.md](docs/usage.md).
 | [8-to-3 priority encoder](showcase/encoder_8to3/) | Single flat gate-level circuit |
 | [4-bit carry-lookahead adder](showcase/cla_4bit/) | 32 two-input gates, direct-wire lookahead |
 | [4x4 array multiplier](showcase/multiplier_4x4/) | 64 basic gates, direct-wire array |
+| [256-gate stress netlist](showcase/stress_256/) | 32-layer direct-wire scale benchmark |
 | [Decimal keypad encoder](showcase/decimal_keypad_flat/) | Large flat direct-wire circuit |
 | [Hierarchical keypad encoder](showcase/decimal_keypad_hierarchical/) | Three direct-wire subcircuits |
 | [16-bit ALU](showcase/alu16/) | 433 basic gates, eight operations, status flags |

@@ -45,7 +45,7 @@ Direct-wire techniques used to keep the drawing readable:
   - NOT: 8.
 - Input Pins: 10.
 - Output Pins: 5.
-- Direct wires: 160.
+- Direct wires: 176.
 - Tunnel components: 0.
 - Subcircuit instances: 0.
 

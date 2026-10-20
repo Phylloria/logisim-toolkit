@@ -41,7 +41,7 @@ If multiple inputs are active, the highest-numbered input determines the code.
 - 6 AND gates create selected terms `T6..T1`.
 - 3 OR gates combine each output bit.
 - 22 basic gates total.
-- 130 direct orthogonal wires.
+- 143 direct orthogonal wire segments after explicit T-junction splitting.
 
 The layout is organized by signal flow: inputs, priority ladder, suppression,
 one-hot terms, and binary output.

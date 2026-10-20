@@ -4,19 +4,15 @@ from __future__ import annotations
 
 import argparse
 import csv
-import xml.etree.ElementTree as ET
-from collections import defaultdict
 from pathlib import Path
 
-from direct_router import Bounds, WireNet
+from direct_router import Bounds
+from flat_builder import build_wire_nets, write_flat_project
 from generate_hierarchical_keypad import (
     Gate,
     Pin,
     Stage,
-    comp,
-    gate_inputs,
     route_stage,
-    wire,
 )
 
 INPUT_NAMES = [f"A{index}" for index in range(4)] + [
@@ -127,29 +123,13 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
         )
         stage.outputs.append(pin)
 
-    sinks: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    for gate in stage.gates:
-        for wanted, terminal in zip(gate.inputs, gate_inputs(gate)):
-            sinks[wanted].append(terminal)
     for index in range(8):
         if index not in current:
             raise ValueError(f"missing product bit P{index}")
-        sinks[current[index]].append(stage.outputs[index].point)
-
-    sources = {pin.name: pin.point for pin in stage.inputs}
-    sources.update({gate.signal: gate.point for gate in stage.gates})
-    nets = []
-    for signal, terminals in sinks.items():
-        try:
-            source = sources[signal]
-        except KeyError as error:
-            raise ValueError(f"signal {signal!r} has no driver") from error
-        nets.append(WireNet(signal, tuple([source, *terminals])))
-
-    used_signals = set(sinks)
-    unused = set(sources) - used_signals
-    if unused:
-        raise ValueError(f"unused signal(s): {sorted(unused)}")
+    nets = build_wire_nets(stage, {
+        f"P{index}": current[index]
+        for index in range(8)
+    })
 
     output_points = {pin.point for pin in stage.outputs}
     nets.sort(key=lambda net: not any(
@@ -217,52 +197,14 @@ def main() -> int:
     )
     stage, _ = make_circuit()
 
-    root = ET.Element("project", {"source": "2.7.1", "version": "1.0"})
-    ET.SubElement(root, "lib", {"desc": "#Wiring", "name": "0"})
-    ET.SubElement(root, "lib", {"desc": "#Gates", "name": "1"})
-    ET.SubElement(root, "lib", {"desc": "#Base", "name": "6"})
-    ET.SubElement(root, "main", {"name": "main"})
-    options = ET.SubElement(root, "options")
-    for key, value in (("gateUndefined", "ignore"), ("simlimit", "1000"), ("simrand", "0")):
-        ET.SubElement(options, "a", {"name": key, "val": value})
-    circuit = ET.SubElement(root, "circuit", {"name": "main"})
-    ET.SubElement(circuit, "a", {"name": "circuit", "val": "main"})
-
-    for text, x, y in (
+    write_flat_project(stage, args.out, [
         ("4x4 ARRAY MULTIPLIER - GATE-LEVEL DIRECT-WIRE", 60, 50),
         ("PARTIAL PRODUCTS: PPij = Ai AND Bj", PP_X, 60),
         ("ACCUMULATION ROW B1", ROW_STARTS[1], ROW_YS[1] - 40),
         ("ACCUMULATION ROW B2", ROW_STARTS[2], ROW_YS[2] - 40),
         ("ACCUMULATION ROW B3", ROW_STARTS[3], ROW_YS[3] - 40),
         ("8-BIT PRODUCT", OUTPUT_X - 100, OUTPUT_Y - 40),
-    ):
-        comp(circuit, "6", (x, y), "Text", (
-            ("font", "SansSerif plain 14"), ("halign", "left"),
-            ("text", text), ("valign", "base"),
-        ))
-    for pin in stage.inputs:
-        comp(circuit, "0", pin.point, "Pin", (
-            ("facing", "east"), ("label", pin.name),
-            ("labelloc", "west"), ("tristate", "false"),
-        ))
-    for gate in stage.gates:
-        attrs = [("facing", "east")]
-        if gate.kind != "NOT":
-            attrs.append(("inputs", len(gate.inputs)))
-        comp(circuit, "1", gate.point, {
-            "AND": "AND Gate", "OR": "OR Gate", "XOR": "XOR Gate", "NOT": "NOT Gate"
-        }[gate.kind], attrs)
-    for pin in stage.outputs:
-        comp(circuit, "0", pin.point, "Pin", (
-            ("facing", "west"), ("label", pin.name),
-            ("labelloc", "east"), ("output", "true"),
-        ))
-    for start, end in stage.wires:
-        wire(circuit, start, end)
-
-    ET.indent(root, space="  ")
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    ET.ElementTree(root).write(args.out, encoding="utf-8", xml_declaration=True)
+    ])
     write_table(
         table_path,
         [(a, b) for a in range(16) for b in range(16)],

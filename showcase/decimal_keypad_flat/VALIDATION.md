@@ -19,7 +19,7 @@ NOT gates: 8
 Input Pins: 10
 Output Pins: 5
 Text notes: 6
-Wires: 160
+Wires: 176
 Tunnels: 0
 Subcircuit instances: 0
 ```

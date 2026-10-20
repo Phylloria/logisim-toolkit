@@ -23,6 +23,8 @@ from logisim_geometry import (
     GATE_NAMES,
     gate_body_half_height,
     gate_input_axis,
+    implicit_t_junctions,
+    on_wire_segment,
     splitter_definition,
 )
 
@@ -99,17 +101,6 @@ def _triggered(previous: int | None, current: int | None, trigger: str) -> bool:
     if trigger == "falling":
         return previous == 1 and current == 0
     return previous == 0 and current == 1
-
-
-def _on_wire(point_value, start, end) -> bool:
-    x, y = point_value
-    x1, y1 = start
-    x2, y2 = end
-    if x1 == x2 == x:
-        return min(y1, y2) <= y <= max(y1, y2)
-    if y1 == y2 == y:
-        return min(x1, x2) <= x <= max(x1, x2)
-    return False
 
 
 class UniversalProject:
@@ -348,6 +339,22 @@ class UniversalProject:
             (point(element.get("from")), point(element.get("to")))
             for element in circuit.findall("wire")
         ]
+        for component in components:
+            if component.point[0] % 10 or component.point[1] % 10:
+                findings.append(
+                    f"off-grid component {component.name}[{component.index}] "
+                    f"at {component.point}"
+                )
+        for endpoint in sorted({
+            endpoint for wire in wires for endpoint in wire
+            if endpoint[0] % 10 or endpoint[1] % 10
+        }):
+            findings.append(f"off-grid wire endpoint {endpoint}")
+        for endpoint, containing, branch in implicit_t_junctions(wires):
+            findings.append(
+                f"implicit T junction at {endpoint}: {branch} ends inside "
+                f"{containing}; split the containing wire"
+            )
         for index, (start, end) in enumerate(wires):
             for other_start, other_end in wires[index + 1:]:
                 if start[1] == end[1] == other_start[1] == other_end[1]:
@@ -384,7 +391,7 @@ class UniversalProject:
                     continue
                 if any(
                     other_index != wire_index
-                    and _on_wire(endpoint, other_start, other_end)
+                    and on_wire_segment(endpoint, other_start, other_end)
                     for other_index, (other_start, other_end) in enumerate(wires)
                 ):
                     continue

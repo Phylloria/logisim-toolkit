@@ -58,7 +58,7 @@ If behavior is underspecified, resolve only details that materially affect the c
 - Leave room for the component's visible body, labels, value display, and every terminal. Multi-bit Pins, splitters, multiplexers, and memory controls need more room than their connection point suggests.
 - Use orthogonal wires on the project grid. Route from verified terminal coordinates to verified terminal coordinates. Keep long runs in distinct lanes; cross only where the target application treats the crossing as unconnected. An endpoint touching a segment is a junction and may join nets.
 - Avoid wire overlaps, ambiguous T-junctions, duplicate labels on tunnels, overlapping Pins, and routes that pass through component bodies. Use tunnels when a named net improves readability or reduces a genuinely unwieldy route; duplicate tunnel labels intentionally join those nets.
-- For a dense gate-level datapath, prefer short gate stubs plus labeled Tunnels over thousands of long point-to-point wires. Give every internal net one driver and use the same label at every sink. Keep a visible source tunnel next to each top-level Pin so the Pin-to-net connection is explicit.
+- Choose the wiring style from the assignment before laying out logic. If Tunnels are allowed and long-distance readability matters, prefer short gate stubs plus labeled Tunnels. Give every internal net one driver and the same label at every sink, and keep a visible source tunnel next to each top-level Pin. If Tunnels or encapsulation are forbidden, use direct orthogonal wiring instead: decompose wide fan-in gates into two-input networks where necessary, organize logic in columns or rows with dedicated fanout lanes, split every same-net T junction explicitly, and keep all coordinates on the routing grid. Do not solve dense ports by simply enlarging the canvas.
 - For bus circuits, use native multi-bit Pins and Splitters/Joiners. Set bit width, fanout, bit mapping, and facing explicitly; verify that each splitter branch corresponds to the intended bit.
 - For hierarchy, keep the implementation inside subcircuits and expose clear input/output Pins. Add custom appearance and correctly mapped circuit ports when the block is intended to be placed or operated in a parent circuit.
 
@@ -255,7 +255,10 @@ all `16 x 16 x 2 = 512` combinations of `A`, `B`, and `CIN`.
 
 When a fanout tree has several close input ports, do not rely on one routing
 order. `DirectRouter` retries failed nets with far-first, x-sorted, and y-sorted
-tree growth orders. Keep every gate coordinate on the 10-unit routing grid.
+tree growth orders. `route_stage` also performs one bounded rip-up/reroute:
+when a later net fails, it moves a low-fanout earlier net to the end of the
+route order and retries. Keep every gate coordinate on the 10-unit routing
+grid.
 
 Prefer straight runs over shortest Manhattan paths. `route_stage` exposes a
 `preferred_bend_cost`: use a high value such as 20 for column-oriented logic,
@@ -271,6 +274,30 @@ gate anchor, gate input terminal, or wire endpoint that is not aligned to the
 terminals)` instead of an anonymous point list so a routing failure reports
 the logical signal, such as `CIN` or `P32`, rather than only the source
 coordinate.
+
+Both `check_circ.py` and the universal model now reject off-grid component or
+wire coordinates and implicit T junctions where one wire endpoint lands inside
+another wire segment. Split the containing wire explicitly instead of relying
+on Logisim's endpoint-to-interior junction behavior.
+
+`route_stage` creates escape stubs only for terminals that occur in a net.
+Unconnected top-level Pins are rejected instead of being left as tempting but
+floating stubs.
+
+For large direct-wire regressions, use the bundled 256-gate stress netlist:
+
+```powershell
+python scripts/generate_stress_256.py --out outputs/stress256.circ
+python scripts/check_universal.py outputs/stress256.circ `
+  --table outputs/stress256_vectors.tsv
+python scripts/validate_logisim.py outputs/stress256.circ `
+  --table outputs/stress256_vectors.tsv --limit 2 `
+  --logisim C:\Logisim\logisim-win-2.7.1.exe
+```
+
+It contains 32 columns by 8 rows of two-input gates. The layout exercises
+shared input fanout, 2700+ direct wire segments, output routing, and the
+rip-up/reroute path without using any Tunnel.
 
 ## Bundled Resources
 
@@ -289,6 +316,8 @@ coordinate.
 - `scripts/generate_flat_keypad.py` builds the single-circuit, direct-wire layout with no encapsulation and no Tunnels.
 - `scripts/generate_encoder_8to3.py` builds a flat gate-level 8-to-3 priority encoder with a 256-row exhaustive table.
 - `scripts/generate_multiplier_4x4.py` builds a flat gate-level 4x4 array multiplier with all 256 operand pairs.
+- `scripts/generate_stress_256.py` builds the 256-gate direct-wire scale regression.
+- `scripts/flat_builder.py` centralizes flat-stage net construction and project emission.
 - `scripts/direct_router.py` provides deterministic orthogonal routing for direct-wire subcircuits.
 - `scripts/check_hierarchical.py` resolves custom subcircuit appearances and simulates nested circuits.
 - `scripts/validate_logisim.py` runs real Logisim 2.7.1 CLI simulations with generated halt harnesses.

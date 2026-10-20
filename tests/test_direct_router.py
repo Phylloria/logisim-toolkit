@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +12,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from direct_router import (
     Bounds,
     DirectRouter,
+    WireNet,
     remove_path_loops,
     split_segments_at_endpoints,
 )
@@ -18,6 +20,7 @@ from generate_hierarchical_keypad import (
     Gate,
     Pin,
     Stage,
+    route_stage,
     validate_stage_grid,
 )
 
@@ -64,6 +67,57 @@ class DirectRouterTest(unittest.TestCase):
             router.reserve(point)
         with self.assertRaisesRegex(RuntimeError, "CIN"):
             router.route([(0, 50), (50, 50)], net_name="CIN")
+
+    def test_route_stage_rips_up_and_retries_net(self) -> None:
+        class FakeRouter:
+            instances = []
+
+            def __init__(self, bounds: Bounds, grid: int = 10) -> None:
+                self.routed: list[str | None] = []
+                self.instances.append(self)
+
+            def occupy_wire(self, start, end) -> None:
+                pass
+
+            def add_obstacle(self, rect) -> None:
+                pass
+
+            def reserve(self, point) -> None:
+                pass
+
+            def route(
+                self,
+                terminals,
+                preferred_bend_cost=None,
+                net_name=None,
+            ):
+                if net_name == "B" and "A" in self.routed:
+                    raise RuntimeError("blocked by A")
+                self.routed.append(net_name)
+                return []
+
+        stage = Stage("main")
+        nets = [
+            WireNet("A", ((0, 0), (10, 0))),
+            WireNet("B", ((0, 20), (10, 20))),
+        ]
+        with patch(
+            "generate_hierarchical_keypad.DirectRouter",
+            FakeRouter,
+        ):
+            route_stage(stage, Bounds(0, 0, 100, 100), nets)
+        self.assertEqual(len(FakeRouter.instances), 2)
+        self.assertEqual(FakeRouter.instances[1].routed, ["B", "A"])
+
+    def test_route_stage_rejects_unconnected_top_level_pin(self) -> None:
+        stage = Stage("main")
+        stage.inputs.append(Pin("UNUSED", (0, 0), False, "east"))
+        with self.assertRaisesRegex(ValueError, "UNUSED"):
+            route_stage(
+                stage,
+                Bounds(0, 0, 100, 100),
+                [WireNet("A", ((0, 20), (10, 20)))],
+            )
 
 
 if __name__ == "__main__":

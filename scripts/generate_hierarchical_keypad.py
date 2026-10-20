@@ -106,49 +106,115 @@ def route_stage(
     bounds: Bounds,
     nets: list[list[Point] | WireNet],
     preferred_bend_cost: int | None = None,
+    ripup_limit: int = 1,
 ) -> None:
     router_grid = 10
     validate_stage_grid(stage, router_grid)
-    router = DirectRouter(bounds, grid=router_grid)
-    escapes: dict[Point, Point] = {}
-
-    def add_escape(terminal: Point, outward: Point) -> None:
-        escape = (terminal[0] + outward[0] * 20, terminal[1] + outward[1] * 20)
-        escapes[terminal] = escape
-        stage.wires.append((terminal, escape))
-        router.occupy_wire(terminal, escape)
-
-    for gate in stage.gates:
-        for terminal in gate_inputs(gate):
-            add_escape(terminal, (-1, 0))
-        add_escape(gate.point, (1, 0))
-    for pin in stage.inputs:
-        add_escape(pin.point, (1, 0) if pin.facing == "east" else (0, 1))
-    for pin in stage.outputs:
-        add_escape(pin.point, (-1, 0) if pin.facing == "west" else (0, -1))
-
-    for gate in stage.gates:
-        router.add_obstacle(gate_rect(gate))
-    for pin in stage.inputs + stage.outputs:
-        router.add_obstacle(pin_rect(pin))
-        router.reserve(pin.point)
-    for gate in stage.gates:
-        for terminal in gate_inputs(gate):
-            router.reserve(terminal)
-        router.reserve(gate.point)
+    normalized_nets: list[tuple[str | None, tuple[Point, ...]]] = []
     for net in nets:
         if isinstance(net, WireNet):
             terminals = net.terminals
             net_name = net.name
         else:
-            terminals = net
+            terminals = tuple(net)
             net_name = None
-        routed = router.route(
-            [escapes.get(point, point) for point in terminals],
-            preferred_bend_cost=preferred_bend_cost,
-            net_name=net_name,
+        normalized_nets.append((net_name, terminals))
+
+    used_points = {
+        point for _, terminals in normalized_nets for point in terminals
+    }
+    unconnected_pins = [
+        pin.name
+        for pin in stage.inputs + stage.outputs
+        if pin.point not in used_points
+    ]
+    if unconnected_pins:
+        raise ValueError(
+            f"stage has unconnected top-level Pin(s): {unconnected_pins}"
         )
-        stage.wires.extend(split_segments_at_endpoints(routed))
+
+    escapes: dict[Point, Point] = {}
+    escape_wires: list[tuple[Point, Point]] = []
+
+    def add_escape(terminal: Point, outward: Point) -> None:
+        escape = (terminal[0] + outward[0] * 20, terminal[1] + outward[1] * 20)
+        escapes[terminal] = escape
+        escape_wires.append((terminal, escape))
+
+    for gate in stage.gates:
+        for terminal in gate_inputs(gate):
+            if terminal in used_points:
+                add_escape(terminal, (-1, 0))
+        if gate.point in used_points:
+            add_escape(gate.point, (1, 0))
+    for pin in stage.inputs:
+        add_escape(pin.point, (1, 0) if pin.facing == "east" else (0, 1))
+    for pin in stage.outputs:
+        add_escape(pin.point, (-1, 0) if pin.facing == "west" else (0, -1))
+
+    def configure_router() -> DirectRouter:
+        router = DirectRouter(bounds, grid=router_grid)
+        for terminal, escape in escape_wires:
+            router.occupy_wire(terminal, escape)
+        for gate in stage.gates:
+            router.add_obstacle(gate_rect(gate))
+        for pin in stage.inputs + stage.outputs:
+            router.add_obstacle(pin_rect(pin))
+            router.reserve(pin.point)
+        for gate in stage.gates:
+            for terminal in gate_inputs(gate):
+                router.reserve(terminal)
+            router.reserve(gate.point)
+        return router
+
+    def route_all(
+        order: list[tuple[str | None, tuple[Point, ...]]],
+    ) -> tuple[list[tuple[Point, Point]], int, RuntimeError | None]:
+        router = configure_router()
+        routed_wires: list[tuple[Point, Point]] = []
+        for index, (net_name, terminals) in enumerate(order):
+            try:
+                routed = router.route(
+                    [escapes.get(point, point) for point in terminals],
+                    preferred_bend_cost=preferred_bend_cost,
+                    net_name=net_name,
+                )
+            except RuntimeError as error:
+                return routed_wires, index, error
+            routed_wires.extend(split_segments_at_endpoints(routed))
+        return routed_wires, len(order), None
+
+    routed_wires, failed_index, error = route_all(normalized_nets)
+    attempts: list[str] = []
+    if error is not None:
+        candidates = sorted(
+            range(failed_index),
+            key=lambda index: (
+                len(normalized_nets[index][1]),
+                -index,
+            ),
+        )[:max(0, ripup_limit)]
+        for candidate in candidates:
+            label = normalized_nets[candidate][0] or f"net {candidate}"
+            attempts.append(label)
+            order = [
+                net for index, net in enumerate(normalized_nets)
+                if index != candidate
+            ]
+            order.append(normalized_nets[candidate])
+            routed_wires, _, retry_error = route_all(order)
+            if retry_error is None:
+                error = None
+                break
+        if error is not None and attempts:
+            raise RuntimeError(
+                f"{error}; rip-up attempts: {', '.join(attempts)}"
+            ) from error
+    if error is not None:
+        raise error
+
+    stage.wires.extend(escape_wires)
+    stage.wires.extend(routed_wires)
     validate_stage_grid(stage, grid=router_grid)
 
 

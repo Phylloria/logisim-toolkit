@@ -14,6 +14,8 @@ values with one shared non-NOT offset.
 """
 from __future__ import annotations
 
+from collections import defaultdict
+
 
 GATE_NAMES = {
     "AND": "AND Gate",
@@ -34,6 +36,66 @@ INPUT_AXIS = {
     "XNOR Gate": 70,
     "NOT Gate": 30,
 }
+
+
+def on_wire_segment(target, start, end) -> bool:
+    x, y = target
+    x1, y1 = start
+    x2, y2 = end
+    if x1 == x2 == x:
+        return min(y1, y2) <= y <= max(y1, y2)
+    if y1 == y2 == y:
+        return min(x1, x2) <= x <= max(x1, x2)
+    return False
+
+
+def strictly_on_wire_segment(target, start, end) -> bool:
+    return (
+        target != start
+        and target != end
+        and on_wire_segment(target, start, end)
+    )
+
+
+def implicit_t_junctions(wires) -> list[tuple[tuple[int, int], tuple, tuple]]:
+    findings = set()
+    horizontal = defaultdict(list)
+    vertical = defaultdict(list)
+    for index, (start, end) in enumerate(wires):
+        if start[1] == end[1]:
+            horizontal[start[1]].append((index, start, end))
+        elif start[0] == end[0]:
+            vertical[start[0]].append((index, start, end))
+
+    for index, (start, end) in enumerate(wires):
+        if start[1] == end[1]:
+            candidates_at = {start[0]: vertical.get(start[0], []), end[0]: vertical.get(end[0], [])}
+            for endpoint in (start, end):
+                for other_index, other_start, other_end in candidates_at[endpoint[0]]:
+                    if index != other_index and strictly_on_wire_segment(
+                        endpoint, other_start, other_end
+                    ):
+                        findings.add((
+                            endpoint,
+                            (start, end),
+                            (other_start, other_end),
+                        ))
+        elif start[0] == end[0]:
+            candidates_at = {
+                start[1]: horizontal.get(start[1], []),
+                end[1]: horizontal.get(end[1], []),
+            }
+            for endpoint in (start, end):
+                for other_index, other_start, other_end in candidates_at[endpoint[1]]:
+                    if index != other_index and strictly_on_wire_segment(
+                        endpoint, other_start, other_end
+                    ):
+                        findings.add((
+                            endpoint,
+                            (start, end),
+                            (other_start, other_end),
+                        ))
+    return sorted(findings)
 
 
 def gate_input_axis(name: str) -> int:

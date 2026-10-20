@@ -7,6 +7,8 @@ import csv
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from direct_router import split_segments_at_endpoints
+
 
 def comp(parent, library, point, name, attributes=()):
     node = ET.SubElement(parent, "comp", {
@@ -208,7 +210,7 @@ def make_wide_components(path):
         ((500, 400), (1000, 400)),
         ((500, 410), (1000, 410)),
     ]
-    for start, end in wires:
+    for start, end in split_segments_at_endpoints(wires):
         wire(node, start, end)
     ET.indent(root, space="  ")
     ET.ElementTree(root).write(path, encoding="utf-8", xml_declaration=True)

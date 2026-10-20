@@ -24,6 +24,8 @@ from logisim_geometry import (
     GATE_NAMES,
     gate_body_half_height,
     gate_input_axis,
+    implicit_t_junctions,
+    on_wire_segment as on_segment,
     port_offsets,
 )
 
@@ -68,6 +70,52 @@ def parse(path: Path, circuit_name: str | None = None):
     wires = []
     for element in circuit.findall("wire"):
         wires.append((point(element.get("from")), point(element.get("to"))))
+    for component in list(components):
+        if component["name"] == "Text":
+            continue
+        if component["x"] % 10 or component["y"] % 10:
+            components.append({
+                "name": "Off-grid component",
+                "library": None,
+                "x": component["x"],
+                "y": component["y"],
+                "attributes": {
+                    "detail": (
+                        f"{component['name']} at "
+                        f"({component['x']},{component['y']}) is not on the "
+                        "10-unit grid"
+                    )
+                },
+            })
+    off_grid_endpoints = sorted({
+        endpoint
+        for wire in wires
+        for endpoint in wire
+        if endpoint[0] % 10 or endpoint[1] % 10
+    })
+    for endpoint in off_grid_endpoints:
+        components.append({
+            "name": "Off-grid wire endpoint",
+            "library": None,
+            "x": endpoint[0],
+            "y": endpoint[1],
+            "attributes": {
+                "detail": f"wire endpoint {endpoint} is not on the 10-unit grid"
+            },
+        })
+    for endpoint, containing, branch in implicit_t_junctions(wires):
+        components.append({
+            "name": "Implicit T junction",
+            "library": None,
+            "x": endpoint[0],
+            "y": endpoint[1],
+            "attributes": {
+                "detail": (
+                    f"{branch} ends inside {containing}; split the containing "
+                    "wire at the junction"
+                )
+            },
+        })
     for index, (start, end) in enumerate(wires):
         for other_start, other_end in wires[index + 1:]:
             horizontal = start[1] == end[1] == other_start[1] == other_end[1]
@@ -159,17 +207,6 @@ def gate_ports(component: dict):
         inputs.append((x + rx, y + ry))
     output = (x, y)
     return inputs, output
-
-
-def on_segment(target: Point, start: Point, end: Point) -> bool:
-    x, y = target
-    x1, y1 = start
-    x2, y2 = end
-    if x1 == x2 == x:
-        return min(y1, y2) <= y <= max(y1, y2)
-    if y1 == y2 == y:
-        return min(x1, x2) <= x <= max(x1, x2)
-    return False
 
 
 class Nets:

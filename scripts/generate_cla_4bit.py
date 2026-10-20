@@ -4,19 +4,15 @@ from __future__ import annotations
 
 import argparse
 import csv
-import xml.etree.ElementTree as ET
-from collections import defaultdict
 from pathlib import Path
 
-from direct_router import Bounds, WireNet
+from direct_router import Bounds
+from flat_builder import build_wire_nets, write_flat_project
 from generate_hierarchical_keypad import (
     Gate,
     Pin,
     Stage,
-    comp,
-    gate_inputs,
     route_stage,
-    wire,
 )
 
 INPUT_NAMES = [f"A{index}" for index in range(4)] + [
@@ -87,27 +83,13 @@ def make_circuit() -> Stage:
         stage.outputs.append(Pin(f"S{index}", (OUTPUT_X, y), True, "west"))
     stage.outputs.append(Pin("COUT", (OUTPUT_X, 840), True, "west"))
 
-    sinks: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    for gate in stage.gates:
-        for wanted, terminal in zip(gate.inputs, gate_inputs(gate)):
-            sinks[wanted].append(terminal)
-    for index in range(4):
-        sinks[sum_signals[index]].append(stage.outputs[index].point)
-    sinks["C4"].append(stage.outputs[4].point)
-
-    sources = {pin.name: pin.point for pin in stage.inputs}
-    sources.update({gate.signal: gate.point for gate in stage.gates})
-    nets = []
-    for signal, terminals in sinks.items():
-        try:
-            source = sources[signal]
-        except KeyError as error:
-            raise ValueError(f"signal {signal!r} has no driver") from error
-        nets.append(WireNet(signal, tuple([source, *terminals])))
-
-    unused = set(sources) - set(sinks)
-    if unused:
-        raise ValueError(f"unused signal(s): {sorted(unused)}")
+    nets = build_wire_nets(stage, {
+        **{
+            f"S{index}": sum_signals[index]
+            for index in range(4)
+        },
+        "COUT": "C4",
+    })
 
     def signal_priority(signal: str) -> int:
         if signal == "CIN":
@@ -186,22 +168,7 @@ def main() -> int:
     )
     stage = make_circuit()
 
-    root = ET.Element("project", {"source": "2.7.1", "version": "1.0"})
-    ET.SubElement(root, "lib", {"desc": "#Wiring", "name": "0"})
-    ET.SubElement(root, "lib", {"desc": "#Gates", "name": "1"})
-    ET.SubElement(root, "lib", {"desc": "#Base", "name": "6"})
-    ET.SubElement(root, "main", {"name": "main"})
-    options = ET.SubElement(root, "options")
-    for key, value in (
-        ("gateUndefined", "ignore"),
-        ("simlimit", "1000"),
-        ("simrand", "0"),
-    ):
-        ET.SubElement(options, "a", {"name": key, "val": value})
-    circuit = ET.SubElement(root, "circuit", {"name": "main"})
-    ET.SubElement(circuit, "a", {"name": "circuit", "val": "main"})
-
-    for text, x, y in (
+    write_flat_project(stage, args.out, [
         ("4-BIT BLOCK CARRY-LOOKAHEAD ADDER - GATE-LEVEL DIRECT-WIRE", 60, 50),
         ("PROPAGATE P = A XOR B", 520, 60),
         ("GENERATE G = A AND B", 740, 60),
@@ -209,43 +176,7 @@ def main() -> int:
         ("BLOCK GROUPS", FULL_X - 20, 60),
         ("LOOKAHEAD CARRIES", CARRY_X - 20, 60),
         ("SUMS", SUM_X - 10, 60),
-    ):
-        comp(circuit, "6", (x, y), "Text", (
-            ("font", "SansSerif plain 14"),
-            ("halign", "left"),
-            ("text", text),
-            ("valign", "base"),
-        ))
-    for pin in stage.inputs:
-        comp(circuit, "0", pin.point, "Pin", (
-            ("facing", "east"),
-            ("label", pin.name),
-            ("labelloc", "west"),
-            ("tristate", "false"),
-        ))
-    for gate in stage.gates:
-        attrs = [("facing", "east")]
-        if gate.kind != "NOT":
-            attrs.append(("inputs", len(gate.inputs)))
-        comp(circuit, "1", gate.point, {
-            "AND": "AND Gate",
-            "OR": "OR Gate",
-            "XOR": "XOR Gate",
-            "NOT": "NOT Gate",
-        }[gate.kind], attrs)
-    for pin in stage.outputs:
-        comp(circuit, "0", pin.point, "Pin", (
-            ("facing", "west"),
-            ("label", pin.name),
-            ("labelloc", "east"),
-            ("output", "true"),
-        ))
-    for start, end in stage.wires:
-        wire(circuit, start, end)
-
-    ET.indent(root, space="  ")
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    ET.ElementTree(root).write(args.out, encoding="utf-8", xml_declaration=True)
+    ])
     write_table(
         table_path,
         [(a, b, cin) for a in range(16) for b in range(16) for cin in range(2)],

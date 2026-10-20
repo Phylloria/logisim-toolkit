@@ -13,7 +13,7 @@
 - OR gates: 10.
 - NOT gates: 6.
 - AND gates: 6.
-- Direct wires: 130.
+- Direct wires: 143.
 - Tunnels: 0.
 - Subcircuits: 0.
 - High-level encoder/arithmetic components: 0.

@@ -12,6 +12,7 @@ import csv
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from direct_router import split_segments_at_endpoints
 from generate_hierarchical_keypad import (
     Gate,
     Pin,
@@ -196,6 +197,7 @@ def make_flat_circuit():
         wires.append((gate.point, outputs[name].point))
 
     stage.wires.extend(wires)
+    stage.wires = split_segments_at_endpoints(stage.wires)
     return stage
 
 

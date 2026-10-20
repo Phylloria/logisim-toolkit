@@ -12,7 +12,7 @@
 - Basic gates: 31.
 - Input Pins: 9.
 - Output Pins: 4.
-- Direct wires: 201.
+- Direct wires: 191.
 - Tunnels: 0.
 - Subcircuits: 0.
 - Floating terminals: 0.

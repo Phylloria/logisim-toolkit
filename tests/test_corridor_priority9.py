@@ -48,7 +48,7 @@ class CorridorPriority9RegressionTest(unittest.TestCase):
             if component.get("name", "").endswith(" Gate")
         ]
         self.assertEqual(len(gates), 31)
-        self.assertEqual(len(circuits[0].findall("wire")), 201)
+        self.assertEqual(len(circuits[0].findall("wire")), 191)
 
     def test_exhaustive_priority_encoding(self) -> None:
         result = subprocess.run(

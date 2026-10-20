@@ -25,7 +25,7 @@ def build_stage() -> Stage:
     for index in range(1, 10):
         stage.inputs.append(Pin(
             f"I{index}",
-            (60, 200 + index * 100),
+            (60, 200 + index * 90),
             False,
             "east",
         ))
@@ -35,7 +35,7 @@ def build_stage() -> Stage:
             f"HIGH{index}",
             "OR",
             tuple(f"I{higher}" for higher in range(index + 1, 10)),
-            (800, 200 + index * 100),
+            (600, 200 + index * 90),
         ))
     for index in range(1, 9):
         inputs = ("I9",) if index == 8 else (f"HIGH{index}",)
@@ -43,14 +43,14 @@ def build_stage() -> Stage:
             f"N{index}",
             "NOT",
             inputs,
-            (1050, 200 + index * 100),
+            (800, 200 + index * 90),
         ))
     for index in range(1, 9):
         stage.gates.append(Gate(
             f"T{index}",
             "AND",
             (f"I{index}", f"N{index}"),
-            (1300, 200 + index * 100),
+            (1000, 200 + index * 90),
         ))
 
     bcd_terms = {
@@ -64,17 +64,17 @@ def build_stage() -> Stage:
             f"D{bit}",
             "OR",
             bcd_terms[bit],
-            (1600, 300 + bit * 200),
+            (1300, 300 + bit * 180),
         ))
         stage.gates.append(Gate(
             f"ND{bit}",
             "NOT",
             (f"D{bit}",),
-            (1850, 300 + bit * 200),
+            (1500, 300 + bit * 180),
         ))
         stage.outputs.append(Pin(
             f"nD{bit}",
-            (2050, 300 + bit * 200),
+            (1650, 300 + bit * 180),
             True,
             "west",
         ))
@@ -86,21 +86,37 @@ def build_stage() -> Stage:
                 sinks_by_input.setdefault(wanted, []).append((gate, terminal))
 
     corridor_wires = []
-    lane_bases = {800: 550, 1050: 820, 1300: 1060, 1600: 1320}
+    lane_bases = {800: 620, 1000: 830, 1300: 1080}
     for index in range(1, 10):
         name = f"I{index}"
         source = stage.inputs[index - 1].point
-        riser_x = 120 + (index - 1) * 10
+        local_lane = 100 + (index - 1) * 10
         track_y = 20 + (index - 1) * 10
+        first_stage = [
+            terminal for gate, terminal in sinks_by_input[name]
+            if gate.point[0] == 600
+        ]
         grouped = {}
         for gate, terminal in sinks_by_input[name]:
+            if gate.point[0] == 600:
+                continue
             lane_x = lane_bases[gate.point[0]] + (index - 1) * 10
             grouped.setdefault(lane_x, []).append(terminal)
+        corridor_wires.append((source, (local_lane, source[1])))
+        ys = [track_y, source[1], *[point[1] for point in first_stage]]
+        corridor_wires.append(((local_lane, min(ys)), (local_lane, max(ys))))
+        if first_stage:
+            corridor_wires.extend([
+                *[
+                    ((local_lane, point[1]), point)
+                    for point in first_stage
+                ],
+            ])
+        if not grouped:
+            continue
         max_lane = max(grouped)
         corridor_wires.extend([
-            (source, (riser_x, source[1])),
-            ((riser_x, source[1]), (riser_x, track_y)),
-            ((riser_x, track_y), (max_lane, track_y)),
+            ((local_lane, track_y), (max_lane, track_y)),
         ])
         for lane_x, terminals in grouped.items():
             ys = [track_y, *[point[1] for point in terminals]]
@@ -113,14 +129,14 @@ def build_stage() -> Stage:
     stage.wires.extend(split_segments_at_endpoints(corridor_wires))
 
     for index in range(1, 8):
-        y = 200 + index * 100
-        stage.wires.append(((800, y), (1020, y)))
+        y = 200 + index * 90
+        stage.wires.append(((600, y), (770, y)))
     for index in range(1, 9):
-        y = 200 + index * 100
+        y = 200 + index * 90
         stage.wires.extend([
-            ((1050, y), (1240, y)),
-            ((1240, y), (1240, y + 20)),
-            ((1240, y + 20), (1250, y + 20)),
+            ((800, y), (940, y)),
+            ((940, y), (940, y + 20)),
+            ((940, y + 20), (950, y + 20)),
         ])
 
     term_wires = []
@@ -136,7 +152,7 @@ def build_stage() -> Stage:
         sinks = sinks_by_signal.get(name, [])
         if not sinks:
             continue
-        lane_x = 1420 + (index - 1) * 10
+        lane_x = 1170 + (index - 1) * 10
         x, y = sources[name]
         ys = [y, *[point[1] for point in sinks]]
         term_wires.extend([
@@ -147,9 +163,9 @@ def build_stage() -> Stage:
     stage.wires.extend(split_segments_at_endpoints(term_wires))
 
     for bit in range(4):
-        y = 300 + bit * 200
-        stage.wires.append(((1600, y), (1820, y)))
-        stage.wires.append(((1850, y), (2050, y)))
+        y = 300 + bit * 180
+        stage.wires.append(((1300, y), (1470, y)))
+        stage.wires.append(((1500, y), (1650, y)))
 
     stage.wires = split_segments_at_endpoints(stage.wires)
     validate_stage_grid(stage)
@@ -195,10 +211,10 @@ def main() -> int:
     stage = build_stage()
     write_flat_project(stage, args.out, [
         ("9-KEY PRIORITY ENCODER - STAGED CORRIDOR LAYOUT", 60, 50),
-        ("SUPPRESSION OR", 470, 70),
-        ("INVERT", 690, 70),
-        ("ONE-HOT TERMS", 900, 70),
-        ("ACTIVE-LOW BCD", 1160, 70),
+        ("SUPPRESSION OR", 570, 70),
+        ("INVERT", 770, 70),
+        ("ONE-HOT TERMS", 950, 70),
+        ("ACTIVE-LOW BCD", 1250, 70),
     ])
     write_table(table_path)
     print(f"Circuit: {args.out}")

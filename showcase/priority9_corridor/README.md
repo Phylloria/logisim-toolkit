@@ -30,10 +30,10 @@ lane group before the BCD gates.
 | Layout | Gates | Wires | Footprint |
 | --- | ---: | ---: | --- |
 | Single-column reference | 29 | 213 | 1360 x 4840 |
-| Staged corridors | 31 | 201 | 1990 x 1080 |
+| Staged corridors | 31 | 191 | 1590 x 990 |
 
-The staged layout uses two extra gates but reduces wire count slightly and
-reduces circuit area by about 67%.
+The staged layout uses two extra gates but reduces wire count and circuit area
+by about 76% compared with the single-column reference.
 
 ## Files
 

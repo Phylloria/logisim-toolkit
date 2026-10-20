@@ -155,7 +155,12 @@ def make_circuit() -> tuple[Stage, dict[int, str]]:
     nets.sort(key=lambda terminals: not any(
         point in output_points for point in terminals[1:]
     ))
-    route_stage(stage, Bounds(0, 0, 4300, 1900), nets)
+    route_stage(
+        stage,
+        Bounds(0, 0, 4300, 1900),
+        nets,
+        preferred_bend_cost=8,
+    )
     return stage, current
 
 

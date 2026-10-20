@@ -123,7 +123,12 @@ def make_circuit() -> Stage:
         -signal_priority(item[0]),
     ))
     nets = [terminals for _, terminals in nets_with_signals]
-    route_stage(stage, Bounds(0, 0, 3050, 1000), nets)
+    route_stage(
+        stage,
+        Bounds(0, 0, 3050, 1000),
+        nets,
+        preferred_bend_cost=20,
+    )
     return stage
 
 

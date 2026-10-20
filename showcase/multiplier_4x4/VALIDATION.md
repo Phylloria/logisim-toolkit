@@ -15,7 +15,8 @@
   - OR: 8.
 - Input Pins: 8.
 - Output Pins: 8.
-- Direct wires: 907.
+- Direct wires: 882.
+- Wire corner-or-junction points: 637.
 - Tunnels: 0.
 - Subcircuits: 0.
 - High-level arithmetic components: 0.

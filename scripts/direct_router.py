@@ -13,6 +13,8 @@ from typing import Iterable
 
 
 Point = tuple[int, int]
+MULTI_TERMINAL_BEND_COSTS = (6, 4, 2)
+TWO_TERMINAL_BEND_COSTS = (20, 8, 6, 4, 2)
 
 
 @dataclass(frozen=True)
@@ -146,6 +148,7 @@ def route_net(
     reserved: set[Point],
     max_states: int = 800_000,
     sink_order: str = "near",
+    bend_cost: int = MULTI_TERMINAL_BEND_COSTS[0],
 ) -> list[tuple[Point, Point]]:
     """Route a source/fanout tree from terminals[0] to every other terminal."""
     if len(terminals) < 2:
@@ -219,7 +222,9 @@ def route_net(
                     continue
                 if edge_key((x, y), next_point) in occupied_edges:
                     continue
-                next_cost = cost + 1 + (2 if previous_direction not in (-1, direction) else 0)
+                next_cost = cost + 1 + (
+                    bend_cost if previous_direction not in (-1, direction) else 0
+                )
                 next_state = (next_point[0], next_point[1], direction)
                 if next_cost >= costs.get(next_state, 1 << 60):
                     continue
@@ -289,31 +294,51 @@ class DirectRouter:
             edge = (left, right) if left <= right else (right, left)
             self.occupied_edges.add(edge)
 
-    def route(self, terminals: Iterable[Point]) -> list[tuple[Point, Point]]:
+    def route(
+        self,
+        terminals: Iterable[Point],
+        preferred_bend_cost: int | None = None,
+    ) -> list[tuple[Point, Point]]:
         terminal_list = list(terminals)
         last_error = None
-        for sink_order in ("near", "far", "x", "x_desc", "y", "y_desc"):
-            occupied = set(self.occupied)
-            occupied_edges = set(self.occupied_edges)
-            occupied_junctions = set(self.occupied_junctions)
-            try:
-                segments = route_net(
-                    terminal_list,
-                    bounds=self.bounds,
-                    grid=self.grid,
-                    obstacle_nodes=self.obstacles,
-                    occupied=occupied,
-                    occupied_edges=occupied_edges,
-                    occupied_junctions=occupied_junctions,
-                    reserved=self.reserved,
-                    sink_order=sink_order,
-                )
-            except RuntimeError as error:
-                last_error = error
-                continue
-            self.occupied = occupied
-            self.occupied_edges = occupied_edges
-            self.occupied_junctions = occupied_junctions
-            return segments
+        if preferred_bend_cost is None:
+            bend_costs = (
+                TWO_TERMINAL_BEND_COSTS
+                if len(terminal_list) == 2
+                else MULTI_TERMINAL_BEND_COSTS
+            )
+        else:
+            bend_costs = (
+                preferred_bend_cost,
+                *(
+                    cost for cost in (8, 6, 4, 2)
+                    if cost < preferred_bend_cost
+                ),
+            )
+        for bend_cost in bend_costs:
+            for sink_order in ("near", "far", "x", "x_desc", "y", "y_desc"):
+                occupied = set(self.occupied)
+                occupied_edges = set(self.occupied_edges)
+                occupied_junctions = set(self.occupied_junctions)
+                try:
+                    segments = route_net(
+                        terminal_list,
+                        bounds=self.bounds,
+                        grid=self.grid,
+                        obstacle_nodes=self.obstacles,
+                        occupied=occupied,
+                        occupied_edges=occupied_edges,
+                        occupied_junctions=occupied_junctions,
+                        reserved=self.reserved,
+                        sink_order=sink_order,
+                        bend_cost=bend_cost,
+                    )
+                except RuntimeError as error:
+                    last_error = error
+                    continue
+                self.occupied = occupied
+                self.occupied_edges = occupied_edges
+                self.occupied_junctions = occupied_junctions
+                return segments
         assert last_error is not None
         raise last_error

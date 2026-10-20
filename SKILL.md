@@ -257,6 +257,14 @@ When a fanout tree has several close input ports, do not rely on one routing
 order. `DirectRouter` retries failed nets with far-first, x-sorted, and y-sorted
 tree growth orders. Keep every gate coordinate on the 10-unit routing grid.
 
+Prefer straight runs over shortest Manhattan paths. `route_stage` exposes a
+`preferred_bend_cost`: use a high value such as 20 for column-oriented logic,
+and a moderate value such as 8 for dense fanout grids where strong bend
+penalties can consume the remaining channels. The router lowers the cost and
+retries when necessary. As a regression target, the 4-bit CLA changed from 358
+wire segments / 239 corner-or-junction points to 334 / 211, while the 4x4
+multiplier changed from 907 / 657 to 882 / 637 without changing its logic.
+
 ## Bundled Resources
 
 - Start at `reference/INDEX.md` to choose a sample. Treat user-supplied files under `reference/supplied_archive/` as examples to inspect, not authoritative documentation.

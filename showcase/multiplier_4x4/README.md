@@ -44,7 +44,7 @@ product Pins. All 64 gates are visible at the same level.
 
 ## Direct Wiring
 
-- 907 direct orthogonal wire segments.
+- 882 direct orthogonal wire segments.
 - 0 Tunnel components.
 - 0 subcircuit instances.
 - Explicitly split same-net T junctions to avoid Logisim `E` values on dense
@@ -54,7 +54,9 @@ product Pins. All 64 gates are visible at the same level.
 
 The measured component-and-wire footprint is 4000 by 1770 circuit units. The
 partial-product grid uses 140-by-110 spacing, and the three accumulation rows
-use 520-unit full-adder cells.
+use 520-unit full-adder cells. The router uses a bend cost of 8 for this dense
+grid and automatically lowers it only when a network cannot otherwise be
+routed.
 
 ## Files
 

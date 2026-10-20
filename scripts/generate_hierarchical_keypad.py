@@ -74,7 +74,12 @@ def pin_rect(pin: Pin) -> tuple[int, int, int, int]:
     return x - 55, y - 15, x, y + 15
 
 
-def route_stage(stage: Stage, bounds: Bounds, nets: list[list[Point]]) -> None:
+def route_stage(
+    stage: Stage,
+    bounds: Bounds,
+    nets: list[list[Point]],
+    preferred_bend_cost: int | None = None,
+) -> None:
     router = DirectRouter(bounds, grid=10)
     escapes: dict[Point, Point] = {}
 
@@ -103,7 +108,10 @@ def route_stage(stage: Stage, bounds: Bounds, nets: list[list[Point]]) -> None:
             router.reserve(terminal)
         router.reserve(gate.point)
     for terminals in nets:
-        routed = router.route([escapes.get(point, point) for point in terminals])
+        routed = router.route(
+            [escapes.get(point, point) for point in terminals],
+            preferred_bend_cost=preferred_bend_cost,
+        )
         stage.wires.extend(split_segments_at_endpoints(routed))
 
 

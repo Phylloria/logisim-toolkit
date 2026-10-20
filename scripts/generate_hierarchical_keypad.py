@@ -164,9 +164,11 @@ def route_stage(
         if gate.point in used_points:
             add_escape(gate.point, (1, 0))
     for pin in stage.inputs:
-        add_escape(pin.point, (1, 0) if pin.facing == "east" else (0, 1))
+        if pin.point in used_points:
+            add_escape(pin.point, (1, 0) if pin.facing == "east" else (0, 1))
     for pin in stage.outputs:
-        add_escape(pin.point, (-1, 0) if pin.facing == "west" else (0, -1))
+        if pin.point in used_points:
+            add_escape(pin.point, (-1, 0) if pin.facing == "west" else (0, -1))
 
     def configure_router() -> DirectRouter:
         corridor_lanes = (

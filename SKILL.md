@@ -1,6 +1,6 @@
 ---
 name: logisim
-description: Design and draw digital logic circuits in Logisim by creating or editing native .circ projects. Use for gate-level circuits, combinational logic, truth tables, multiplexers, decoders, adders, sequential circuits, buses, and Logisim project repair.
+description: Design and draw digital logic circuits in Logisim by creating or editing native .circ projects. Use for gate-level circuits, combinational logic, truth tables, multiplexers, decoders, adders, multipliers, sequential circuits, buses, and Logisim project repair.
 ---
 
 # Logisim Circuit Designer
@@ -206,6 +206,31 @@ source-row channels below gate bodies. Do not let two nets share a vertical
 lane or use a source-row junction where another lane turns; those are the two
 common sources of accidental shorts in large direct-wire diagrams.
 
+## 4x4 Array Multiplier
+
+Generate a flat gate-level unsigned 4-bit multiplier:
+
+```powershell
+python scripts/generate_multiplier_4x4.py --out outputs/multiplier4.circ
+python scripts/check_universal.py outputs/multiplier4.circ `
+  --table outputs/multiplier4_vectors.tsv --require-exhaustive
+python scripts/validate_logisim.py outputs/multiplier4.circ `
+  --table outputs/multiplier4_smoke.tsv `
+  --logisim C:\Logisim\logisim-win-2.7.1.exe
+```
+
+The interface is `A0..A3`, `B0..B3`, and `P0..P7`, all scalar active-high
+Pins. The implementation uses 16 partial-product AND gates and a three-row
+carry-save array expanded into 4 half adders and 8 full adders: 64 basic gates
+in total. Every adder is built from AND/XOR/OR gates. The project has one flat
+circuit, no subcircuits, no Tunnels, and no high-level arithmetic components.
+
+The exhaustive table contains all `16 x 16 = 256` operand pairs. Run real
+Logisim as well as the independent model. On dense direct-wire layouts,
+explicitly split a long wire at every same-net T junction; relying on an
+endpoint touching the interior of a long segment can produce `E` values in
+Logisim even when a simpler net model reports clean connectivity.
+
 ## Bundled Resources
 
 - Start at `reference/INDEX.md` to choose a sample. Treat user-supplied files under `reference/supplied_archive/` as examples to inspect, not authoritative documentation.
@@ -221,6 +246,7 @@ common sources of accidental shorts in large direct-wire diagrams.
 - `scripts/generate_hierarchical_keypad.py` builds the four-circuit direct-wire hierarchy without Tunnels.
 - `scripts/generate_flat_keypad.py` builds the single-circuit, direct-wire layout with no encapsulation and no Tunnels.
 - `scripts/generate_encoder_8to3.py` builds a flat gate-level 8-to-3 priority encoder with a 256-row exhaustive table.
+- `scripts/generate_multiplier_4x4.py` builds a flat gate-level 4x4 array multiplier with all 256 operand pairs.
 - `scripts/direct_router.py` provides deterministic orthogonal routing for direct-wire subcircuits.
 - `scripts/check_hierarchical.py` resolves custom subcircuit appearances and simulates nested circuits.
 - `scripts/validate_logisim.py` runs real Logisim 2.7.1 CLI simulations with generated halt harnesses.

@@ -24,6 +24,7 @@ class StandaloneCliTest(unittest.TestCase):
         result = self.run_cli("list-tools")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("generate encoder-8to3", result.stdout)
+        self.assertIn("generate multiplier-4x4", result.stdout)
         self.assertIn("validate-clocked", result.stdout)
 
     def test_generates_and_checks_from_cli(self) -> None:

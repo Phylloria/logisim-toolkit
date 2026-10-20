@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
-from direct_router import Bounds, DirectRouter
+from direct_router import Bounds, DirectRouter, split_segments_at_endpoints
 from logisim_geometry import GATE_NAMES, gate_body_half_height, gate_input_axis, port_offsets
 
 
@@ -103,7 +103,8 @@ def route_stage(stage: Stage, bounds: Bounds, nets: list[list[Point]]) -> None:
             router.reserve(terminal)
         router.reserve(gate.point)
     for terminals in nets:
-        stage.wires.extend(router.route([escapes.get(point, point) for point in terminals]))
+        routed = router.route([escapes.get(point, point) for point in terminals])
+        stage.wires.extend(split_segments_at_endpoints(routed))
 
 
 def make_priority_stage() -> Stage:

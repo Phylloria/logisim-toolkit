@@ -79,6 +79,61 @@ def compress_path(points: list[Point]) -> list[tuple[Point, Point]]:
     return segments
 
 
+def remove_path_loops(points: list[Point]) -> list[Point]:
+    """Remove self-intersections so one routed branch cannot retrace itself."""
+    simplified: list[Point] = []
+    positions: dict[Point, int] = {}
+    for point in points:
+        if point in positions:
+            keep = positions[point] + 1
+            for removed in simplified[keep:]:
+                del positions[removed]
+            del simplified[keep:]
+            continue
+        positions[point] = len(simplified)
+        simplified.append(point)
+    return simplified
+
+
+def split_segments_at_endpoints(
+    segments: Iterable[tuple[Point, Point]],
+) -> list[tuple[Point, Point]]:
+    """Split wires at every same-net junction endpoint.
+
+    Logisim accepts most endpoint-on-wire T junctions, but a branch endpoint
+    that meets a long segment next to another collinear endpoint can be
+    evaluated as an error. Making each T junction an explicit shared endpoint
+    avoids that ambiguity.
+    """
+    segment_list = list(segments)
+    endpoints = {point for segment in segment_list for point in segment}
+    result = []
+    for start, end in segment_list:
+        if start[0] == end[0]:
+            ordered = sorted(
+                (
+                    point for point in endpoints
+                    if point[0] == start[0]
+                    and min(start[1], end[1]) < point[1] < max(start[1], end[1])
+                ),
+                key=lambda point: point[1],
+                reverse=start[1] > end[1],
+            )
+        else:
+            ordered = sorted(
+                (
+                    point for point in endpoints
+                    if point[1] == start[1]
+                    and min(start[0], end[0]) < point[0] < max(start[0], end[0])
+                ),
+                key=lambda point: point[0],
+                reverse=start[0] > end[0],
+            )
+        chain = [start, *ordered, end]
+        result.extend(zip(chain, chain[1:]))
+    return result
+
+
 def route_net(
     terminals: list[Point],
     *,
@@ -171,6 +226,7 @@ def route_net(
             state = parents[state]
         path.reverse()
         # Starting from a sink means the path is target -> existing tree.
+        path = remove_path_loops(path)
         all_segments.extend(compress_path(path))
         tree.update(path)
         occupied.update(path)
@@ -203,11 +259,22 @@ class DirectRouter:
             return
         if start[0] != end[0] and start[1] != end[1]:
             raise ValueError("occupied wire must be orthogonal")
-        points = [start, end]
+        dx = 0 if start[0] == end[0] else (1 if end[0] > start[0] else -1)
+        dy = 0 if start[1] == end[1] else (1 if end[1] > start[1] else -1)
+        distance = abs(end[0] - start[0]) + abs(end[1] - start[1])
+        if distance % self.grid:
+            raise ValueError(
+                f"occupied wire length {distance} is not on the {self.grid} grid"
+            )
+        points = [
+            (start[0] + dx * index, start[1] + dy * index)
+            for index in range(0, distance + 1, self.grid)
+        ]
         self.occupied.update(points)
         self.occupied_junctions.update(points)
-        left, right = (start, end) if start <= end else (end, start)
-        self.occupied_edges.add((left, right))
+        for left, right in zip(points, points[1:]):
+            edge = (left, right) if left <= right else (right, left)
+            self.occupied_edges.add(edge)
 
     def route(self, terminals: Iterable[Point]) -> list[tuple[Point, Point]]:
         segments = route_net(

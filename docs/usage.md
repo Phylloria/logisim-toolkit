@@ -11,6 +11,7 @@ logisim-toolkit validate-clocked   Real Logisim fixed-input clock sequence
 logisim-toolkit stats              Runtime component statistics
 logisim-toolkit render             Diagnostic layout PNG
 logisim-toolkit generate alu
+logisim-toolkit generate cla-4bit
 logisim-toolkit generate keypad
 logisim-toolkit generate keypad-flat
 logisim-toolkit generate keypad-hierarchy

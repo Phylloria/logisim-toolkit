@@ -122,6 +122,7 @@ logisim-toolkit check encoder_8to3.circ `
 | `stats` | Logisim component statistics |
 | `render` | Diagnostic layout PNG |
 | `generate alu` | Gate-level N-bit ALU |
+| `generate cla-4bit` | 4-bit block carry-lookahead adder |
 | `generate encoder-8to3` | 8-to-3 priority encoder |
 | `generate multiplier-4x4` | 4x4 gate-level array multiplier |
 | `generate keypad-flat` | Flat decimal keypad encoder |
@@ -135,6 +136,7 @@ Full command reference: [docs/usage.md](docs/usage.md).
 | Circuit | Design |
 | --- | --- |
 | [8-to-3 priority encoder](showcase/encoder_8to3/) | Single flat gate-level circuit |
+| [4-bit carry-lookahead adder](showcase/cla_4bit/) | 32 two-input gates, direct-wire lookahead |
 | [4x4 array multiplier](showcase/multiplier_4x4/) | 64 basic gates, direct-wire array |
 | [Decimal keypad encoder](showcase/decimal_keypad_flat/) | Large flat direct-wire circuit |
 | [Hierarchical keypad encoder](showcase/decimal_keypad_hierarchical/) | Three direct-wire subcircuits |

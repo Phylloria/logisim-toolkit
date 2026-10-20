@@ -231,6 +231,32 @@ explicitly split a long wire at every same-net T junction; relying on an
 endpoint touching the interior of a long segment can produce `E` values in
 Logisim even when a simpler net model reports clean connectivity.
 
+## 4-bit Carry-Lookahead Adder
+
+Generate a flat gate-level block carry-lookahead adder:
+
+```powershell
+python scripts/generate_cla_4bit.py --out outputs/cla4.circ
+python scripts/check_universal.py outputs/cla4.circ `
+  --table outputs/cla4_vectors.tsv --require-exhaustive
+python scripts/validate_logisim.py outputs/cla4.circ `
+  --table outputs/cla4_smoke.tsv `
+  --logisim C:\Logisim\logisim-win-2.7.1.exe
+```
+
+The interface is `A0..A3`, `B0..B3`, `CIN`, `S0..S3`, and `COUT`. The first
+stage computes `P_i=A_i XOR B_i` and `G_i=A_i AND B_i`. Pair groups build
+`P10/G10` and `P32/G32`; the block group builds `P30/G30`; then all four
+carries are selected from lookahead terms rather than a ripple chain.
+
+The implementation uses 32 two-input AND/XOR/OR gates, one flat circuit, no
+Tunnels, and no high-level arithmetic components. The exhaustive table contains
+all `16 x 16 x 2 = 512` combinations of `A`, `B`, and `CIN`.
+
+When a fanout tree has several close input ports, do not rely on one routing
+order. `DirectRouter` retries failed nets with far-first, x-sorted, and y-sorted
+tree growth orders. Keep every gate coordinate on the 10-unit routing grid.
+
 ## Bundled Resources
 
 - Start at `reference/INDEX.md` to choose a sample. Treat user-supplied files under `reference/supplied_archive/` as examples to inspect, not authoritative documentation.
@@ -242,6 +268,7 @@ Logisim even when a simpler net model reports clean connectivity.
 - `scripts/circ_model.py` is the bit-level bus/sequential model used by the universal checker.
 - `scripts/check_universal.py` checks buses, splitters, hierarchy, high-level arithmetic/plexers, and sequential tables.
 - `scripts/generate_alu.py` builds the bundled 16-bit gate-level ALU regression, its reference vectors, and its optional exhaustive table.
+- `scripts/generate_cla_4bit.py` builds a flat 4-bit block carry-lookahead adder with all 512 input combinations.
 - `scripts/generate_keypad_encoder.py` builds the gate-only decimal keypad priority encoder, a 1024-row exhaustive table, and a smaller Logisim smoke table.
 - `scripts/generate_hierarchical_keypad.py` builds the four-circuit direct-wire hierarchy without Tunnels.
 - `scripts/generate_flat_keypad.py` builds the single-circuit, direct-wire layout with no encapsulation and no Tunnels.

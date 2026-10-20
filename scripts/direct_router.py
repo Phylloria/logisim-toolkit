@@ -145,13 +145,26 @@ def route_net(
     occupied_junctions: set[Point],
     reserved: set[Point],
     max_states: int = 800_000,
+    sink_order: str = "near",
 ) -> list[tuple[Point, Point]]:
     """Route a source/fanout tree from terminals[0] to every other terminal."""
     if len(terminals) < 2:
         return []
     own_terminals = set(terminals)
     tree = {terminals[0]}
-    pending = sorted(terminals[1:], key=lambda point: manhattan(point, terminals[0]))
+    pending = terminals[1:]
+    orderings = {
+        "near": lambda point: manhattan(point, terminals[0]),
+        "far": lambda point: -manhattan(point, terminals[0]),
+        "x": lambda point: (point[0], point[1]),
+        "x_desc": lambda point: (-point[0], point[1]),
+        "y": lambda point: (point[1], point[0]),
+        "y_desc": lambda point: (-point[1], point[0]),
+    }
+    try:
+        pending = sorted(pending, key=orderings[sink_order])
+    except KeyError as error:
+        raise ValueError(f"unknown sink order {sink_order!r}") from error
     all_segments: list[tuple[Point, Point]] = []
     moves = ((grid, 0), (-grid, 0), (0, grid), (0, -grid))
     directions = {(grid, 0): 0, (-grid, 0): 1, (0, grid): 2, (0, -grid): 3}
@@ -277,14 +290,30 @@ class DirectRouter:
             self.occupied_edges.add(edge)
 
     def route(self, terminals: Iterable[Point]) -> list[tuple[Point, Point]]:
-        segments = route_net(
-            list(terminals),
-            bounds=self.bounds,
-            grid=self.grid,
-            obstacle_nodes=self.obstacles,
-            occupied=self.occupied,
-            occupied_edges=self.occupied_edges,
-            occupied_junctions=self.occupied_junctions,
-            reserved=self.reserved,
-        )
-        return segments
+        terminal_list = list(terminals)
+        last_error = None
+        for sink_order in ("near", "far", "x", "x_desc", "y", "y_desc"):
+            occupied = set(self.occupied)
+            occupied_edges = set(self.occupied_edges)
+            occupied_junctions = set(self.occupied_junctions)
+            try:
+                segments = route_net(
+                    terminal_list,
+                    bounds=self.bounds,
+                    grid=self.grid,
+                    obstacle_nodes=self.obstacles,
+                    occupied=occupied,
+                    occupied_edges=occupied_edges,
+                    occupied_junctions=occupied_junctions,
+                    reserved=self.reserved,
+                    sink_order=sink_order,
+                )
+            except RuntimeError as error:
+                last_error = error
+                continue
+            self.occupied = occupied
+            self.occupied_edges = occupied_edges
+            self.occupied_junctions = occupied_junctions
+            return segments
+        assert last_error is not None
+        raise last_error

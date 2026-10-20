@@ -21,6 +21,7 @@ TOOLS = {
 
 GENERATORS = {
     "alu": "generate_alu.py",
+    "cla-4bit": "generate_cla_4bit.py",
     "keypad": "generate_keypad_encoder.py",
     "keypad-flat": "generate_flat_keypad.py",
     "keypad-hierarchy": "generate_hierarchical_keypad.py",

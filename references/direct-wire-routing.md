@@ -41,6 +41,14 @@ Diagnostics:
   ordering problem.
 - A failure names the logical net when `WireNet` is used.
 
+For small, repeated bit slices, do not automatically send every local
+two-terminal net through the maze router. Place identical slices on a regular
+row grid and route their short local fanout directly. Use the router for the
+irregular remainder. A forward-tested 13-gate 4-bit mux reached full functional
+correctness but used 118 wire segments when every local net was maze-routed;
+that is a signal to simplify the layout pattern, not evidence that the circuit
+is wrong.
+
 ### Layout-Time Corridors
 
 Use this mode for priority encoders, staged datapaths, and other logic that can

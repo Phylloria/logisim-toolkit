@@ -95,6 +95,10 @@ Choose the routing strategy:
 - Use `route_stage` with `WireNet` names for irregular direct-wire circuits.
 - Use staged corridors when logic has clear dependency columns.
 - Use Tunnels only when allowed and genuinely easier to inspect.
+- For a small number of repeated bit slices, hand-place the slices and route
+  their local fanout in planned lanes. Reserve the maze router for irregular
+  inter-slice nets; routing every two-terminal net through the maze can greatly
+  inflate the number of visible segments.
 
 Detailed rules, diagnostics, corridor allocation, lane packing, bypass tracks,
 and measured examples are in
@@ -142,6 +146,10 @@ carry/borrow, priority, control-code, and state-transition vectors for larger
 circuits. The static checker proves structure and the independent model; only
 real Logisim proves the project loads and evaluates as expected in the target
 runtime.
+
+Run real Logisim with `--limit 1` or a small smoke table before an exhaustive
+runtime pass. A full exhaustive pass can take minutes because every vector
+creates and evaluates a separate harness.
 
 Common explicit failures now include:
 

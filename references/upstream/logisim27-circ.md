@@ -38,6 +38,10 @@ Input Pin:
 </comp>
 ```
 
+`tristate="false"` is required for a normal manually operated top-level input.
+If omitted, 2.7.1 defaults the Pin to tri-state, which leaves it floating until
+driven and can display downstream wires as errors.
+
 Output Pin:
 
 ```xml

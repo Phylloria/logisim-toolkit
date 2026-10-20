@@ -46,6 +46,10 @@ If behavior is underspecified, resolve only details that materially affect the c
 - Component `loc` values are anchors, not universal top-left coordinates. Resolve port coordinates for the exact component, input count, facing, and Logisim version from a matching example, the bundled component reference, or a tiny project opened in Logisim. Never extrapolate an AND gate's geometry to an OR gate, a rotated gate, or a different application version without evidence.
 - For default-size east-facing Logisim 2.7.1 gates, do not use one shared input offset: AND/OR inputs are at `x-50`, XOR/NAND/NOR at `x-60`, XNOR at `x-70`, and NOT at `x-30`. Reuse `scripts/logisim_geometry.py`; a wire that stops at `x-50` on an XOR gate extends into the symbol even if Logisim can still repair or simulate the connection.
 - Pin `loc` is the connection point in the supplied 2.7.1 examples. Put input Pins where a user can reach them and orient them toward the local logic; orient output Pins toward the outside of the circuit.
+- In Logisim 2.7.1, Pin `tristate` defaults to `true`. Always emit
+  `<a name="tristate" val="false"/>` for manually operated top-level input
+  Pins. Otherwise the Pin floats in the GUI and the error value can make
+  downstream wires appear red, even when constant-driven tests pass.
 - Preserve user-operated controls as Pins. Use constants only for values fixed by the specification. Do not hide functional inputs as constants to make a demo appear to work.
 
 ## Place And Route

@@ -476,6 +476,16 @@ class UniversalProject:
                 findings.append(
                     f"multiple drivers on bit {root}: {', '.join(names)}"
                 )
+        if name == self.main:
+            for label, component in input_pins.items():
+                attrs = component.attributes
+                tristate = attrs.get("tristate", "true").lower() != "false"
+                pull = attrs.get("pull", "none").lower()
+                if tristate and pull == "none":
+                    findings.append(
+                        f"input Pin {label} is tristate; set tristate=false "
+                        "for a manually operated top-level input"
+                    )
 
         model = CircuitModel(
             name, components, wires, findings, nets.wire_covered,

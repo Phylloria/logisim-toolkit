@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -74,6 +75,36 @@ class UniversalModelRegressionTest(unittest.TestCase):
         result = self.run_check("probe_decoder.circ", "probe_decoder_vectors.tsv")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("Reference rows: 4; mismatches: 0", result.stdout)
+
+    def test_tristate_top_level_input_is_rejected(self) -> None:
+        source = self.directory / "probe_bus_gate.circ"
+        altered = self.directory / "probe_bus_gate_tristate.circ"
+        root = ET.parse(source).getroot()
+        circuit = root.find("circuit")
+        for component in circuit.findall("comp"):
+            if component.get("name") != "Pin":
+                continue
+            if any(
+                item.get("name") == "output" and item.get("val") == "true"
+                for item in component.findall("a")
+            ):
+                continue
+            for item in list(component.findall("a")):
+                if item.get("name") == "tristate":
+                    component.remove(item)
+        ET.ElementTree(root).write(altered, encoding="utf-8", xml_declaration=True)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS / "check_universal.py"),
+                str(altered),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("tristate", result.stdout)
 
     def test_real_logisim_bus_and_sequential_when_available(self) -> None:
         logisim = os.environ.get("LOGISIM_JAR") or os.environ.get("LOGISIM_EXE")

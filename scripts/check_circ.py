@@ -22,11 +22,13 @@ from pathlib import Path
 
 from logisim_geometry import (
     GATE_NAMES,
+    collinear_overlap_pairs,
     gate_body_half_height,
     gate_input_axis,
     implicit_t_junctions,
-    on_wire_segment as on_segment,
+    point_touches_other_wire,
     port_offsets,
+    wire_line_index,
 )
 
 GATES = set(GATE_NAMES.values())
@@ -70,6 +72,7 @@ def parse(path: Path, circuit_name: str | None = None):
     wires = []
     for element in circuit.findall("wire"):
         wires.append((point(element.get("from")), point(element.get("to"))))
+    line_index = wire_line_index(wires)
     for component in list(components):
         if component["name"] == "Text":
             continue
@@ -103,7 +106,7 @@ def parse(path: Path, circuit_name: str | None = None):
                 "detail": f"wire endpoint {endpoint} is not on the 10-unit grid"
             },
         })
-    for endpoint, containing, branch in implicit_t_junctions(wires):
+    for endpoint, containing, branch in implicit_t_junctions(wires, line_index):
         components.append({
             "name": "Implicit T junction",
             "library": None,
@@ -116,30 +119,16 @@ def parse(path: Path, circuit_name: str | None = None):
                 )
             },
         })
-    for index, (start, end) in enumerate(wires):
-        for other_start, other_end in wires[index + 1:]:
-            horizontal = start[1] == end[1] == other_start[1] == other_end[1]
-            vertical = start[0] == end[0] == other_start[0] == other_end[0]
-            if horizontal:
-                overlap = min(max(start[0], end[0]), max(other_start[0], other_end[0])) - max(
-                    min(start[0], end[0]), min(other_start[0], other_end[0])
-                )
-            elif vertical:
-                overlap = min(max(start[1], end[1]), max(other_start[1], other_end[1])) - max(
-                    min(start[1], end[1]), min(other_start[1], other_end[1])
-                )
-            else:
-                overlap = 0
-            if overlap > 0:
-                components.append({
-                    "name": "Overlapping wire",
-                    "library": None,
-                    "x": start[0],
-                    "y": start[1],
-                    "attributes": {
-                        "detail": f"{start}->{end} overlaps {other_start}->{other_end}"
-                    },
-                })
+    for (start, end), (other_start, other_end) in collinear_overlap_pairs(wires):
+        components.append({
+            "name": "Overlapping wire",
+            "library": None,
+            "x": start[0],
+            "y": start[1],
+            "attributes": {
+                "detail": f"{start}->{end} overlaps {other_start}->{other_end}"
+            },
+        })
     terminal_points = set()
     for component in components:
         name = component["name"]
@@ -158,9 +147,11 @@ def parse(path: Path, circuit_name: str | None = None):
         for endpoint in (start, end):
             if endpoint in terminal_points or endpoint_counts[endpoint] > 1:
                 continue
-            if any(
-                index != wire_index and on_segment(endpoint, other_start, other_end)
-                for index, (other_start, other_end) in enumerate(wires)
+            if point_touches_other_wire(
+                endpoint,
+                wires,
+                skip_index=wire_index,
+                line_index=line_index,
             ):
                 continue
             components.append({
@@ -225,11 +216,25 @@ class Nets:
                 self.parent[right_root] = left_root
 
         markers = {item for wire in wires for item in wire} | terminals
+        markers_by_x = defaultdict(list)
+        markers_by_y = defaultdict(list)
+        for marker in markers:
+            markers_by_x[marker[0]].append(marker)
+            markers_by_y[marker[1]].append(marker)
         wire_covered: set[Point] = set()
         for start, end in wires:
             if start[0] != end[0] and start[1] != end[1]:
                 raise ValueError(f"diagonal wire {start} -> {end}")
-            touched = [item for item in markers if on_segment(item, start, end)]
+            if start[0] == end[0]:
+                touched = [
+                    item for item in markers_by_x[start[0]]
+                    if min(start[1], end[1]) <= item[1] <= max(start[1], end[1])
+                ]
+            else:
+                touched = [
+                    item for item in markers_by_y[start[1]]
+                    if min(start[0], end[0]) <= item[0] <= max(start[0], end[0])
+                ]
             touched.sort(key=lambda item: item[1] if start[0] == end[0] else item[0])
             wire_covered.update(touched)
             for left, right in zip(touched, touched[1:]):

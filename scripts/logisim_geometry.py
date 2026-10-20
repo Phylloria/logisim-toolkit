@@ -57,8 +57,7 @@ def strictly_on_wire_segment(target, start, end) -> bool:
     )
 
 
-def implicit_t_junctions(wires) -> list[tuple[tuple[int, int], tuple, tuple]]:
-    findings = set()
+def wire_line_index(wires):
     horizontal = defaultdict(list)
     vertical = defaultdict(list)
     for index, (start, end) in enumerate(wires):
@@ -66,6 +65,59 @@ def implicit_t_junctions(wires) -> list[tuple[tuple[int, int], tuple, tuple]]:
             horizontal[start[1]].append((index, start, end))
         elif start[0] == end[0]:
             vertical[start[0]].append((index, start, end))
+    return horizontal, vertical
+
+
+def collinear_overlap_pairs(wires) -> list[tuple[tuple, tuple]]:
+    horizontal, vertical = wire_line_index(wires)
+    findings = set()
+    for kind, groups in (("H", horizontal), ("V", vertical)):
+        for entries in groups.values():
+            active = []
+            for index, start, end in sorted(
+                entries,
+                key=lambda item: min(
+                    item[1][0] if kind == "H" else item[1][1],
+                    item[2][0] if kind == "H" else item[2][1],
+                ),
+            ):
+                low = min(
+                    start[0] if kind == "H" else start[1],
+                    end[0] if kind == "H" else end[1],
+                )
+                high = max(
+                    start[0] if kind == "H" else start[1],
+                    end[0] if kind == "H" else end[1],
+                )
+                active = [
+                    item for item in active
+                    if item[3] > low
+                ]
+                for other_index, other_start, other_end, other_high in active:
+                    if index == other_index:
+                        continue
+                    pair = tuple(sorted(((start, end), (other_start, other_end))))
+                    findings.add(pair)
+                active.append((index, start, end, high))
+    return sorted(findings)
+
+
+def point_touches_other_wire(point, wires, *, skip_index: int | None = None,
+                             line_index=None) -> bool:
+    horizontal, vertical = line_index or wire_line_index(wires)
+    x, y = point
+    for index, start, end in vertical.get(x, []):
+        if index != skip_index and min(start[1], end[1]) <= y <= max(start[1], end[1]):
+            return True
+    for index, start, end in horizontal.get(y, []):
+        if index != skip_index and min(start[0], end[0]) <= x <= max(start[0], end[0]):
+            return True
+    return False
+
+
+def implicit_t_junctions(wires, line_index=None) -> list[tuple[tuple[int, int], tuple, tuple]]:
+    findings = set()
+    horizontal, vertical = line_index or wire_line_index(wires)
 
     for index, (start, end) in enumerate(wires):
         if start[1] == end[1]:

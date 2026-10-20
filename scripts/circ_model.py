@@ -21,11 +21,13 @@ from typing import Any
 from check_circ import Nets, gate_ports, point
 from logisim_geometry import (
     GATE_NAMES,
+    collinear_overlap_pairs,
     gate_body_half_height,
     gate_input_axis,
     implicit_t_junctions,
-    on_wire_segment,
+    point_touches_other_wire,
     splitter_definition,
+    wire_line_index,
 )
 
 
@@ -339,6 +341,7 @@ class UniversalProject:
             (point(element.get("from")), point(element.get("to")))
             for element in circuit.findall("wire")
         ]
+        line_index = wire_line_index(wires)
         for component in components:
             if component.point[0] % 10 or component.point[1] % 10:
                 findings.append(
@@ -350,31 +353,16 @@ class UniversalProject:
             if endpoint[0] % 10 or endpoint[1] % 10
         }):
             findings.append(f"off-grid wire endpoint {endpoint}")
-        for endpoint, containing, branch in implicit_t_junctions(wires):
+        for endpoint, containing, branch in implicit_t_junctions(wires, line_index):
             findings.append(
                 f"implicit T junction at {endpoint}: {branch} ends inside "
                 f"{containing}; split the containing wire"
             )
-        for index, (start, end) in enumerate(wires):
-            for other_start, other_end in wires[index + 1:]:
-                if start[1] == end[1] == other_start[1] == other_end[1]:
-                    overlap = min(max(start[0], end[0]), max(other_start[0], other_end[0])) - max(
-                        min(start[0], end[0]), min(other_start[0], other_end[0])
-                    )
-                    if overlap > 0:
-                        findings.append(
-                            f"overlapping collinear wires: {start}->{end} and "
-                            f"{other_start}->{other_end}"
-                        )
-                elif start[0] == end[0] == other_start[0] == other_end[0]:
-                    overlap = min(max(start[1], end[1]), max(other_start[1], other_end[1])) - max(
-                        min(start[1], end[1]), min(other_start[1], other_end[1])
-                    )
-                    if overlap > 0:
-                        findings.append(
-                            f"overlapping collinear wires: {start}->{end} and "
-                            f"{other_start}->{other_end}"
-                        )
+        for (start, end), (other_start, other_end) in collinear_overlap_pairs(wires):
+            findings.append(
+                f"overlapping collinear wires: {start}->{end} and "
+                f"{other_start}->{other_end}"
+            )
         terminal_points = {
             port.point for component in components for port in component.ports
         }
@@ -389,10 +377,11 @@ class UniversalProject:
             for endpoint in (start, end):
                 if endpoint in terminal_points or endpoint_counts[endpoint] > 1:
                     continue
-                if any(
-                    other_index != wire_index
-                    and on_wire_segment(endpoint, other_start, other_end)
-                    for other_index, (other_start, other_end) in enumerate(wires)
+                if point_touches_other_wire(
+                    endpoint,
+                    wires,
+                    skip_index=wire_index,
+                    line_index=line_index,
                 ):
                     continue
                 findings.append(

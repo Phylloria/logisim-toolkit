@@ -95,6 +95,21 @@ class SemanticGeometryTest(unittest.TestCase):
             findings = UniversalProject(path).collect_findings()["main"]
             self.assertTrue(any("off-grid component" in item for item in findings))
 
+    def test_collinear_overlap_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="overlap-test-") as temporary:
+            path = Path(temporary) / "overlap.circ"
+            write_project(path, [
+                ((0, 0), (30, 0)),
+                ((10, 0), (20, 0)),
+            ])
+            _, components, _ = parse(path)
+            self.assertTrue(any(
+                component["name"] == "Overlapping wire"
+                for component in components
+            ))
+            findings = UniversalProject(path).collect_findings()["main"]
+            self.assertTrue(any("overlapping collinear wires" in item for item in findings))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -365,17 +365,17 @@ def make_bcd_stage() -> Stage:
         pins[digit] = pin
 
     gates = {
-        "B0": Gate("B0", "OR", ("T1", "T3", "T5", "T7", "T9"), (700, 245)),
-        "B1": Gate("B1", "OR", ("T2", "T3", "T6", "T7"), (700, 545)),
-        "B2": Gate("B2", "OR", ("T4", "T5", "T6", "T7"), (700, 845)),
-        "B3": Gate("B3", "OR", ("T8", "T9"), (700, 1145)),
+        "B0": Gate("B0", "OR", ("T1", "T3", "T5", "T7", "T9"), (700, 240)),
+        "B1": Gate("B1", "OR", ("T2", "T3", "T6", "T7"), (700, 540)),
+        "B2": Gate("B2", "OR", ("T4", "T5", "T6", "T7"), (700, 840)),
+        "B3": Gate("B3", "OR", ("T8", "T9"), (700, 1140)),
     }
     stage.gates.extend(gates.values())
     outputs = {
-        "B0": Pin("B0", (950, 245), True, "west"),
-        "B1": Pin("B1", (950, 545), True, "west"),
-        "B2": Pin("B2", (950, 845), True, "west"),
-        "B3": Pin("B3", (950, 1145), True, "west"),
+        "B0": Pin("B0", (950, 240), True, "west"),
+        "B1": Pin("B1", (950, 540), True, "west"),
+        "B2": Pin("B2", (950, 840), True, "west"),
+        "B3": Pin("B3", (950, 1140), True, "west"),
     }
     stage.outputs.extend(outputs.values())
 
@@ -404,6 +404,8 @@ def make_bcd_stage() -> Stage:
 
 def comp(parent: ET.Element, library: str | None, point: Point, name: str,
          attributes: Iterable[tuple[str, str | int]] = ()) -> ET.Element:
+    if point[0] % 10 or point[1] % 10:
+        raise ValueError(f"off-grid component {name} at {point}")
     values = {
         "loc": f"({point[0]},{point[1]})",
         "name": name,
@@ -419,6 +421,8 @@ def comp(parent: ET.Element, library: str | None, point: Point, name: str,
 def wire(parent: ET.Element, start: Point, end: Point) -> None:
     if start == end:
         return
+    if start[0] % 10 or start[1] % 10 or end[0] % 10 or end[1] % 10:
+        raise ValueError(f"off-grid wire {start} -> {end}")
     if start[0] != end[0] and start[1] != end[1]:
         raise ValueError(f"diagonal wire {start} -> {end}")
     ET.SubElement(parent, "wire", {
@@ -476,8 +480,8 @@ def emit_main(root: ET.Element, stages: dict[str, Stage]) -> None:
     circuit = ET.SubElement(root, "circuit", {"name": "main"})
     ET.SubElement(circuit, "a", {"name": "circuit", "val": "main"})
     for text, x, y in (
-        ("DECIMAL KEYPAD PRIORITY ENCODER - HIERARCHICAL DIRECT-WIRE VERSION", 320, 35),
-        ("No Tunnels. PriorityStage -> TermStage -> BCDStage.", 320, 75),
+        ("DECIMAL KEYPAD PRIORITY ENCODER - HIERARCHICAL DIRECT-WIRE VERSION", 320, 40),
+        ("No Tunnels. PriorityStage -> TermStage -> BCDStage.", 320, 80),
     ):
         comp(circuit, "6", (x, y), "Text", (
             ("font", "SansSerif plain 14"), ("halign", "left"),

@@ -691,10 +691,10 @@
       <circ-port height="8" pin="200,700" width="8" x="376" y="76" />
       <circ-port height="8" pin="200,800" width="8" x="416" y="76" />
       <circ-port height="8" pin="200,900" width="8" x="456" y="76" />
-      <circ-port height="10" pin="950,245" width="10" x="135" y="355" />
-      <circ-port height="10" pin="950,545" width="10" x="175" y="355" />
-      <circ-port height="10" pin="950,845" width="10" x="215" y="355" />
-      <circ-port height="10" pin="950,1145" width="10" x="255" y="355" />
+      <circ-port height="10" pin="950,240" width="10" x="135" y="355" />
+      <circ-port height="10" pin="950,540" width="10" x="175" y="355" />
+      <circ-port height="10" pin="950,840" width="10" x="215" y="355" />
+      <circ-port height="10" pin="950,1140" width="10" x="255" y="355" />
       <circ-anchor facing="east" height="6" width="6" x="97" y="77" />
     </appear>
     <comp loc="(200,100)" name="Pin" lib="0">
@@ -751,99 +751,99 @@
       <a name="labelloc" val="west" />
       <a name="tristate" val="false" />
     </comp>
-    <comp loc="(700,245)" name="OR Gate" lib="1">
+    <comp loc="(700,240)" name="OR Gate" lib="1">
       <a name="facing" val="east" />
       <a name="inputs" val="5" />
     </comp>
-    <comp loc="(700,545)" name="OR Gate" lib="1">
+    <comp loc="(700,540)" name="OR Gate" lib="1">
       <a name="facing" val="east" />
       <a name="inputs" val="4" />
     </comp>
-    <comp loc="(700,845)" name="OR Gate" lib="1">
+    <comp loc="(700,840)" name="OR Gate" lib="1">
       <a name="facing" val="east" />
       <a name="inputs" val="4" />
     </comp>
-    <comp loc="(700,1145)" name="OR Gate" lib="1">
+    <comp loc="(700,1140)" name="OR Gate" lib="1">
       <a name="facing" val="east" />
       <a name="inputs" val="2" />
     </comp>
-    <comp loc="(950,245)" name="Pin" lib="0">
+    <comp loc="(950,240)" name="Pin" lib="0">
       <a name="facing" val="west" />
       <a name="label" val="B0" />
       <a name="labelloc" val="east" />
       <a name="output" val="true" />
     </comp>
-    <comp loc="(950,545)" name="Pin" lib="0">
+    <comp loc="(950,540)" name="Pin" lib="0">
       <a name="facing" val="west" />
       <a name="label" val="B1" />
       <a name="labelloc" val="east" />
       <a name="output" val="true" />
     </comp>
-    <comp loc="(950,845)" name="Pin" lib="0">
+    <comp loc="(950,840)" name="Pin" lib="0">
       <a name="facing" val="west" />
       <a name="label" val="B2" />
       <a name="labelloc" val="east" />
       <a name="output" val="true" />
     </comp>
-    <comp loc="(950,1145)" name="Pin" lib="0">
+    <comp loc="(950,1140)" name="Pin" lib="0">
       <a name="facing" val="west" />
       <a name="label" val="B3" />
       <a name="labelloc" val="east" />
       <a name="output" val="true" />
     </comp>
-    <wire from="(700,245)" to="(950,245)" />
-    <wire from="(700,545)" to="(950,545)" />
-    <wire from="(700,845)" to="(950,845)" />
-    <wire from="(700,1145)" to="(950,1145)" />
+    <wire from="(700,240)" to="(950,240)" />
+    <wire from="(700,540)" to="(950,540)" />
+    <wire from="(700,840)" to="(950,840)" />
+    <wire from="(700,1140)" to="(950,1140)" />
     <wire from="(200,100)" to="(300,100)" />
-    <wire from="(300,100)" to="(300,225)" />
-    <wire from="(300,225)" to="(650,225)" />
+    <wire from="(300,100)" to="(300,220)" />
+    <wire from="(300,220)" to="(650,220)" />
     <wire from="(200,200)" to="(320,200)" />
-    <wire from="(320,200)" to="(320,525)" />
-    <wire from="(320,525)" to="(650,525)" />
+    <wire from="(320,200)" to="(320,520)" />
+    <wire from="(320,520)" to="(650,520)" />
     <wire from="(200,300)" to="(340,300)" />
-    <wire from="(340,300)" to="(340,235)" />
-    <wire from="(340,235)" to="(650,235)" />
-    <wire from="(340,235)" to="(340,535)" />
-    <wire from="(340,535)" to="(650,535)" />
+    <wire from="(340,300)" to="(340,230)" />
+    <wire from="(340,230)" to="(650,230)" />
+    <wire from="(340,230)" to="(340,530)" />
+    <wire from="(340,530)" to="(650,530)" />
     <wire from="(200,400)" to="(360,400)" />
-    <wire from="(360,400)" to="(360,825)" />
-    <wire from="(360,825)" to="(650,825)" />
+    <wire from="(360,400)" to="(360,820)" />
+    <wire from="(360,820)" to="(650,820)" />
     <wire from="(200,500)" to="(380,500)" />
-    <wire from="(380,500)" to="(380,245)" />
-    <wire from="(380,245)" to="(650,245)" />
-    <wire from="(380,245)" to="(380,835)" />
-    <wire from="(380,835)" to="(650,835)" />
+    <wire from="(380,500)" to="(380,240)" />
+    <wire from="(380,240)" to="(650,240)" />
+    <wire from="(380,240)" to="(380,830)" />
+    <wire from="(380,830)" to="(650,830)" />
     <wire from="(200,600)" to="(400,600)" />
-    <wire from="(400,600)" to="(400,555)" />
-    <wire from="(400,555)" to="(650,555)" />
-    <wire from="(400,555)" to="(400,855)" />
-    <wire from="(400,855)" to="(650,855)" />
+    <wire from="(400,600)" to="(400,550)" />
+    <wire from="(400,550)" to="(650,550)" />
+    <wire from="(400,550)" to="(400,850)" />
+    <wire from="(400,850)" to="(650,850)" />
     <wire from="(200,700)" to="(420,700)" />
-    <wire from="(420,700)" to="(420,255)" />
-    <wire from="(420,255)" to="(650,255)" />
-    <wire from="(420,255)" to="(420,565)" />
-    <wire from="(420,565)" to="(650,565)" />
-    <wire from="(420,565)" to="(420,865)" />
-    <wire from="(420,865)" to="(650,865)" />
+    <wire from="(420,700)" to="(420,250)" />
+    <wire from="(420,250)" to="(650,250)" />
+    <wire from="(420,250)" to="(420,560)" />
+    <wire from="(420,560)" to="(650,560)" />
+    <wire from="(420,560)" to="(420,860)" />
+    <wire from="(420,860)" to="(650,860)" />
     <wire from="(200,800)" to="(440,800)" />
-    <wire from="(440,800)" to="(440,1125)" />
-    <wire from="(440,1125)" to="(650,1125)" />
+    <wire from="(440,800)" to="(440,1120)" />
+    <wire from="(440,1120)" to="(650,1120)" />
     <wire from="(200,900)" to="(460,900)" />
-    <wire from="(460,900)" to="(460,265)" />
-    <wire from="(460,265)" to="(650,265)" />
-    <wire from="(460,265)" to="(460,1165)" />
-    <wire from="(460,1165)" to="(650,1165)" />
+    <wire from="(460,900)" to="(460,260)" />
+    <wire from="(460,260)" to="(650,260)" />
+    <wire from="(460,260)" to="(460,1160)" />
+    <wire from="(460,1160)" to="(650,1160)" />
   </circuit>
   <circuit name="main">
     <a name="circuit" val="main" />
-    <comp loc="(320,35)" name="Text" lib="6">
+    <comp loc="(320,40)" name="Text" lib="6">
       <a name="font" val="SansSerif plain 14" />
       <a name="halign" val="left" />
       <a name="text" val="DECIMAL KEYPAD PRIORITY ENCODER - HIERARCHICAL DIRECT-WIRE VERSION" />
       <a name="valign" val="base" />
     </comp>
-    <comp loc="(320,75)" name="Text" lib="6">
+    <comp loc="(320,80)" name="Text" lib="6">
       <a name="font" val="SansSerif plain 14" />
       <a name="halign" val="left" />
       <a name="text" val="No Tunnels. PriorityStage -&gt; TermStage -&gt; BCDStage." />

@@ -66,6 +66,9 @@ For large designs, read
 - Top-level manually operated input Pins must explicitly contain
   `<a name="tristate" val="false"/>`. Do not hide functional controls as
   Constants.
+- `write_flat_project`, `comp`, and `wire` reject off-grid coordinates before
+  creating the destination `.circ`. A `+5` coordinate should fail during
+  generation, not after a checker opens the finished file.
 - For buses, set Pin and Splitter widths, fanout, bit mapping, facing, and
   appearance explicitly. Verify branch-to-bit correspondence.
 - For hierarchy, expose exact child Pins and map custom-appearance ports to

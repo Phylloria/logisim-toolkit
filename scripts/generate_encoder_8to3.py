@@ -234,7 +234,7 @@ def main():
     ET.SubElement(circuit, "a", {"name": "circuit", "val": "main"})
     for text, x, y in (
         ("8-TO-3 PRIORITY ENCODER", 100, 40),
-        ("I7 highest priority; Y2..Y0 binary digit; VALID detects any input.", 100, 75),
+        ("I7 highest priority; Y2..Y0 binary digit; VALID detects any input.", 100, 80),
     ):
         comp(circuit, "6", (x, y), "Text", (
             ("font", "SansSerif plain 14"), ("halign", "left"),

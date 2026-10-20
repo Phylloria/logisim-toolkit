@@ -17,7 +17,7 @@
       <a name="text" val="8-TO-3 PRIORITY ENCODER" />
       <a name="valign" val="base" />
     </comp>
-    <comp loc="(100,75)" name="Text" lib="6">
+    <comp loc="(100,80)" name="Text" lib="6">
       <a name="font" val="SansSerif plain 14" />
       <a name="halign" val="left" />
       <a name="text" val="I7 highest priority; Y2..Y0 binary digit; VALID detects any input." />

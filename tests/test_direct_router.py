@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
@@ -20,9 +22,12 @@ from generate_hierarchical_keypad import (
     Gate,
     Pin,
     Stage,
+    comp,
     route_stage,
     validate_stage_grid,
+    wire,
 )
+from flat_builder import write_flat_project
 
 
 class DirectRouterTest(unittest.TestCase):
@@ -123,6 +128,29 @@ class DirectRouterTest(unittest.TestCase):
                 Bounds(0, 0, 100, 100),
                 [WireNet("A", ((0, 20), (10, 20)))],
             )
+
+    def test_component_emission_rejects_off_grid_location(self) -> None:
+        root = ET.Element("project")
+        circuit = ET.SubElement(root, "circuit")
+        with self.assertRaisesRegex(ValueError, r"Text.*100, 105"):
+            comp(circuit, "6", (100, 105), "Text")
+
+    def test_wire_emission_rejects_off_grid_endpoint(self) -> None:
+        root = ET.Element("project")
+        circuit = ET.SubElement(root, "circuit")
+        with self.assertRaisesRegex(ValueError, r"off-grid wire"):
+            wire(circuit, (100, 100), (115, 100))
+
+    def test_flat_project_fails_before_writing_off_grid_text(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="off-grid-emission-") as temporary:
+            path = Path(temporary) / "bad.circ"
+            with self.assertRaisesRegex(ValueError, r"Text.*1105"):
+                write_flat_project(
+                    Stage("main"),
+                    path,
+                    [("SELECT", 60, 1105)],
+                )
+            self.assertFalse(path.exists())
 
 
 if __name__ == "__main__":

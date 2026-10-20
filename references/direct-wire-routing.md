@@ -17,6 +17,9 @@ gate-level circuit must remain readable as one flat diagram.
 
 `route_stage` runs these checks before and after routing. `check_circ.py` and
 the universal model also report off-grid coordinates and implicit T junctions.
+The shared flat emitter validates the complete Stage and its Text annotations
+before writing XML; custom emitters call `comp()` and `wire()`, which reject
+off-grid component anchors and wire endpoints immediately.
 
 ## Choose A Routing Mode
 

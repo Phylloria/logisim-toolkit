@@ -10,6 +10,7 @@ from generate_hierarchical_keypad import (
     Stage,
     comp,
     gate_inputs,
+    validate_stage_grid,
     wire,
 )
 
@@ -56,6 +57,12 @@ def write_flat_project(
     path: Path,
     texts: list[tuple[str, int, int]],
 ) -> None:
+    validate_stage_grid(stage)
+    for text, x, y in texts:
+        if x % 10 or y % 10:
+            raise ValueError(
+                f"off-grid Text {text!r} at ({x},{y})"
+            )
     root = ET.Element("project", {"source": "2.7.1", "version": "1.0"})
     ET.SubElement(root, "lib", {"desc": "#Wiring", "name": "0"})
     ET.SubElement(root, "lib", {"desc": "#Gates", "name": "1"})

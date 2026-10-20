@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 
-from direct_router import Bounds
+from direct_router import Bounds, WireNet
 from generate_hierarchical_keypad import (
     Gate,
     Pin,
@@ -97,13 +97,13 @@ def make_circuit() -> Stage:
 
     sources = {pin.name: pin.point for pin in stage.inputs}
     sources.update({gate.signal: gate.point for gate in stage.gates})
-    nets_with_signals = []
+    nets = []
     for signal, terminals in sinks.items():
         try:
             source = sources[signal]
         except KeyError as error:
             raise ValueError(f"signal {signal!r} has no driver") from error
-        nets_with_signals.append((signal, [source, *terminals]))
+        nets.append(WireNet(signal, tuple([source, *terminals])))
 
     unused = set(sources) - set(sinks)
     if unused:
@@ -118,11 +118,10 @@ def make_circuit() -> Stage:
             return 70 + int(signal[1:])
         return 0
 
-    nets_with_signals.sort(key=lambda item: (
-        -len(item[1]),
-        -signal_priority(item[0]),
+    nets.sort(key=lambda net: (
+        -len(net.terminals),
+        -signal_priority(net.name),
     ))
-    nets = [terminals for _, terminals in nets_with_signals]
     route_stage(
         stage,
         Bounds(0, 0, 3050, 1000),

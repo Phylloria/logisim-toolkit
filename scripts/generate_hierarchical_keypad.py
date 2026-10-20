@@ -18,7 +18,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
-from direct_router import Bounds, DirectRouter, split_segments_at_endpoints
+from direct_router import (
+    Bounds,
+    DirectRouter,
+    WireNet,
+    split_segments_at_endpoints,
+)
 from logisim_geometry import GATE_NAMES, gate_body_half_height, gate_input_axis, port_offsets
 
 
@@ -74,13 +79,37 @@ def pin_rect(pin: Pin) -> tuple[int, int, int, int]:
     return x - 55, y - 15, x, y + 15
 
 
+def validate_stage_grid(stage: Stage, grid: int = 10) -> None:
+    errors = []
+
+    def check(label: str, point: Point) -> None:
+        if point[0] % grid or point[1] % grid:
+            errors.append(f"{label} at {point} is not on the {grid}-unit grid")
+
+    for pin in stage.inputs:
+        check(f"input Pin {pin.name!r}", pin.point)
+    for pin in stage.outputs:
+        check(f"output Pin {pin.name!r}", pin.point)
+    for gate in stage.gates:
+        check(f"gate {gate.signal!r}", gate.point)
+        for index, terminal in enumerate(gate_inputs(gate), 1):
+            check(f"gate {gate.signal!r} input {index}", terminal)
+    for start, end in stage.wires:
+        check(f"wire start for {end}", start)
+        check(f"wire end for {start}", end)
+    if errors:
+        raise ValueError("off-grid layout:\n  " + "\n  ".join(errors))
+
+
 def route_stage(
     stage: Stage,
     bounds: Bounds,
-    nets: list[list[Point]],
+    nets: list[list[Point] | WireNet],
     preferred_bend_cost: int | None = None,
 ) -> None:
-    router = DirectRouter(bounds, grid=10)
+    router_grid = 10
+    validate_stage_grid(stage, router_grid)
+    router = DirectRouter(bounds, grid=router_grid)
     escapes: dict[Point, Point] = {}
 
     def add_escape(terminal: Point, outward: Point) -> None:
@@ -107,12 +136,20 @@ def route_stage(
         for terminal in gate_inputs(gate):
             router.reserve(terminal)
         router.reserve(gate.point)
-    for terminals in nets:
+    for net in nets:
+        if isinstance(net, WireNet):
+            terminals = net.terminals
+            net_name = net.name
+        else:
+            terminals = net
+            net_name = None
         routed = router.route(
             [escapes.get(point, point) for point in terminals],
             preferred_bend_cost=preferred_bend_cost,
+            net_name=net_name,
         )
         stage.wires.extend(split_segments_at_endpoints(routed))
+    validate_stage_grid(stage, grid=router_grid)
 
 
 def make_priority_stage() -> Stage:

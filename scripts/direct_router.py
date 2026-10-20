@@ -18,6 +18,12 @@ TWO_TERMINAL_BEND_COSTS = (20, 8, 6, 4, 2)
 
 
 @dataclass(frozen=True)
+class WireNet:
+    name: str
+    terminals: tuple[Point, ...]
+
+
+@dataclass(frozen=True)
 class Bounds:
     left: int
     top: int
@@ -149,6 +155,7 @@ def route_net(
     max_states: int = 800_000,
     sink_order: str = "near",
     bend_cost: int = MULTI_TERMINAL_BEND_COSTS[0],
+    net_name: str | None = None,
 ) -> list[tuple[Point, Point]]:
     """Route a source/fanout tree from terminals[0] to every other terminal."""
     if len(terminals) < 2:
@@ -233,9 +240,13 @@ def route_net(
                 heuristic = manhattan(next_point, min(tree, key=lambda p: manhattan(p, next_point)))
                 heapq.heappush(queue, (next_cost + heuristic, next_cost, next_state))
         if found is None:
+            label = (
+                f"net {net_name!r}"
+                if net_name is not None
+                else f"net {terminals[0]}"
+            )
             raise RuntimeError(
-                f"no direct route from {target} to net {terminals[0]} "
-                f"({states} states)"
+                f"no direct route from {target} to {label} ({states} states)"
             )
         path = []
         state = found
@@ -298,6 +309,7 @@ class DirectRouter:
         self,
         terminals: Iterable[Point],
         preferred_bend_cost: int | None = None,
+        net_name: str | None = None,
     ) -> list[tuple[Point, Point]]:
         terminal_list = list(terminals)
         last_error = None
@@ -332,6 +344,7 @@ class DirectRouter:
                         reserved=self.reserved,
                         sink_order=sink_order,
                         bend_cost=bend_cost,
+                        net_name=net_name,
                     )
                 except RuntimeError as error:
                     last_error = error

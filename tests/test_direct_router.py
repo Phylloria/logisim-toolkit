@@ -8,7 +8,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from direct_router import remove_path_loops, split_segments_at_endpoints
+from direct_router import (
+    Bounds,
+    DirectRouter,
+    remove_path_loops,
+    split_segments_at_endpoints,
+)
+from generate_hierarchical_keypad import (
+    Gate,
+    Pin,
+    Stage,
+    validate_stage_grid,
+)
 
 
 class DirectRouterTest(unittest.TestCase):
@@ -34,6 +45,25 @@ class DirectRouterTest(unittest.TestCase):
                 ((20, 0), (20, 20)),
             ],
         )
+
+    def test_off_grid_pin_is_rejected_before_routing(self) -> None:
+        stage = Stage("main")
+        stage.inputs.append(Pin("A0", (105, 100), False, "east"))
+        with self.assertRaisesRegex(ValueError, r"A0.*10-unit grid"):
+            validate_stage_grid(stage)
+
+    def test_off_grid_gate_terminal_is_rejected(self) -> None:
+        stage = Stage("main")
+        stage.gates.append(Gate("G", "AND", ("A", "B"), (200, 105)))
+        with self.assertRaisesRegex(ValueError, r"gate 'G' at.*10-unit grid"):
+            validate_stage_grid(stage)
+
+    def test_route_failure_reports_net_name(self) -> None:
+        router = DirectRouter(Bounds(0, 0, 100, 100), grid=10)
+        for point in ((40, 50), (60, 50), (50, 40), (50, 60)):
+            router.reserve(point)
+        with self.assertRaisesRegex(RuntimeError, "CIN"):
+            router.route([(0, 50), (50, 50)], net_name="CIN")
 
 
 if __name__ == "__main__":

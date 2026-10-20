@@ -265,6 +265,13 @@ retries when necessary. As a regression target, the 4-bit CLA changed from 358
 wire segments / 239 corner-or-junction points to 334 / 211, while the 4x4
 multiplier changed from 907 / 657 to 882 / 637 without changing its logic.
 
+`route_stage` also runs `validate_stage_grid` before routing. It rejects a Pin,
+gate anchor, gate input terminal, or wire endpoint that is not aligned to the
+10-unit grid, and names the offending component. Pass `WireNet(name,
+terminals)` instead of an anonymous point list so a routing failure reports
+the logical signal, such as `CIN` or `P32`, rather than only the source
+coordinate.
+
 ## Bundled Resources
 
 - Start at `reference/INDEX.md` to choose a sample. Treat user-supplied files under `reference/supplied_archive/` as examples to inspect, not authoritative documentation.

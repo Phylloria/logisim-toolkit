@@ -12,6 +12,7 @@ import csv
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from corridor_planner import assign_interval_tracks
 from direct_router import split_segments_at_endpoints
 from generate_hierarchical_keypad import (
     Gate,
@@ -181,9 +182,25 @@ def make_flat_circuit():
     for (output_name, term), (target_y, _) in target_rows.items():
         term_targets.setdefault(term, []).append((target_y, output_name))
 
+    term_intervals = {}
     for digit in range(1, 9):
         source_y = 300 + (8 - digit) * 140
-        lane_x = 1020 + (digit - 1) * 20
+        target_ys = [
+            target_y
+            for target_y, _ in term_targets.get(f"T{digit}", [])
+        ]
+        term_intervals[f"T{digit}"] = (
+            min([source_y, *target_ys]),
+            max([source_y, *target_ys]),
+        )
+    term_lanes = assign_interval_tracks(
+        term_intervals,
+        base=1020,
+        step=20,
+    )
+    for digit in range(1, 9):
+        source_y = 300 + (8 - digit) * 140
+        lane_x = term_lanes[f"T{digit}"]
         wires.append(((1000, source_y), (lane_x, source_y)))
         targets = sorted(term_targets.get(f"T{digit}", []))
         target_ys = [target_y for target_y, _ in targets]

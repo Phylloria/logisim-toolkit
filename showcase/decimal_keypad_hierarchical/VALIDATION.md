@@ -12,11 +12,11 @@ Date: 2026-10-20
 
 | Circuit | Components | Gates | Wires | Tunnels |
 | --- | ---: | ---: | ---: | ---: |
-| `PriorityStage` | 45 | 17 | 152 | 0 |
+| `PriorityStage` | 45 | 17 | 160 | 0 |
 | `TermStage` | 34 | 8 | 25 | 0 |
 | `BCDStage` | 17 | 4 | 43 | 0 |
 | `main` | 20 | 0 | 43 | 0 |
-| Total | 116 | 29 | 263 | 0 |
+| Total | 116 | 29 | 271 | 0 |
 
 `main` contains exactly three subcircuit instances. Wires from `K0..K9` to
 `PriorityStage`, from `PriorityStage` to `TermStage`, from `TermStage` to

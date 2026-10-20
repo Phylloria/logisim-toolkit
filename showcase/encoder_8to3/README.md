@@ -44,7 +44,8 @@ If multiple inputs are active, the highest-numbered input determines the code.
 - 143 direct orthogonal wire segments after explicit T-junction splitting.
 
 The layout is organized by signal flow: inputs, priority ladder, suppression,
-one-hot terms, and binary output.
+one-hot terms, and binary output. Term fanout lanes use interval packing so
+non-touching vertical spans can share a corridor.
 
 ## Files
 

@@ -28,7 +28,8 @@ Direct-wire techniques used to keep the drawing readable:
 - The K1..K8 lower-input branches run through a separate local channel below
   the gate bodies.
 - BCD fanout terms use eight distinct vertical lanes between the term column
-  and the BCD output column.
+  and the BCD output column. Lane positions are assigned by interval packing,
+  allowing reuse when vertical spans do not touch.
 - K9 has one dedicated long vertical lane for its B0 and B3 terms.
 - Crossings are orthogonal and occur between wire interiors; they do not create
   junctions. No wire passes through a gate body.

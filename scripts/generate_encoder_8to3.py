@@ -7,6 +7,7 @@ import csv
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from corridor_planner import assign_interval_tracks
 from direct_router import split_segments_at_endpoints
 from generate_hierarchical_keypad import (
     Gate,
@@ -161,9 +162,22 @@ def make_circuit() -> Stage:
         2: (520,),
         1: (320,),
     }
+    term_intervals = {}
+    for index in range(6, 0, -1):
+        source_y = 200 + (6 - index) * 100
+        target_ys = list(term_targets[index])
+        term_intervals[f"T{index}"] = (
+            min([source_y, *target_ys]),
+            max([source_y, *target_ys]),
+        )
+    term_lanes = assign_interval_tracks(
+        term_intervals,
+        base=1000,
+        step=20,
+    )
     for index in range(6, 0, -1):
         y = 200 + (6 - index) * 100
-        lane = 1000 + (6 - index) * 20
+        lane = term_lanes[f"T{index}"]
         stage.wires.append(((950, y), (lane, y)))
         targets = sorted(term_targets[index])
         low = min([y, *targets])

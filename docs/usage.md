@@ -16,6 +16,7 @@ logisim-toolkit generate keypad
 logisim-toolkit generate keypad-flat
 logisim-toolkit generate keypad-hierarchy
 logisim-toolkit generate encoder-8to3
+logisim-toolkit generate encoder-9-corridor
 logisim-toolkit generate multiplier-4x4
 logisim-toolkit generate stress-256
 logisim-toolkit generate probes

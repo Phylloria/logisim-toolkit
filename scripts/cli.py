@@ -26,6 +26,7 @@ GENERATORS = {
     "keypad-flat": "generate_flat_keypad.py",
     "keypad-hierarchy": "generate_hierarchical_keypad.py",
     "encoder-8to3": "generate_encoder_8to3.py",
+    "encoder-9-corridor": "generate_corridor_priority9.py",
     "multiplier-4x4": "generate_multiplier_4x4.py",
     "stress-256": "generate_stress_256.py",
     "probes": "generate_probes.py",

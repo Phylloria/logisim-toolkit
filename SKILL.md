@@ -292,6 +292,28 @@ does not hard-code brittle paths. Enable it only when measured wire and bend
 counts improve: it benefits the CLA and 256-gate stress layout, but was not
 worth keeping on the denser 4x4 multiplier.
 
+### Layout-Time Corridor Pattern
+
+Do not confuse corridor routing with globally snapping lines to a grid. The
+reference corridor layout gives every cross-stage signal a dedicated vertical
+lane and taps sideways into each gate input. A single gate column makes this
+regular but unnecessarily tall. Use staged corridors instead:
+
+- Split logic into narrow dependency columns such as suppression, inversion,
+  one-hot terms, and output combination.
+- Keep a small set of input-distribution tracks above or below the gate rows.
+- Drop into a dedicated lane immediately before the target gate column.
+- Keep each vertical lane local to that column's height.
+- Route dense terminals such as a shared BCD bus through a second short lane
+  group in the next gap.
+- Reserve manual corridors first, then use the maze router only for remaining
+  local nets.
+
+`generate_corridor_priority9.py` is the worked example. Its 9-key active-low
+encoder uses 31 gates and 201 wire segments in a 1990x1080 footprint, compared
+with 213 segments and a 1360x4840 footprint in the single-column reference.
+All 512 input masks pass in the independent model and real Logisim.
+
 For large direct-wire regressions, use the bundled 256-gate stress netlist:
 
 ```powershell
@@ -323,6 +345,7 @@ rip-up/reroute path without using any Tunnel.
 - `scripts/generate_hierarchical_keypad.py` builds the four-circuit direct-wire hierarchy without Tunnels.
 - `scripts/generate_flat_keypad.py` builds the single-circuit, direct-wire layout with no encapsulation and no Tunnels.
 - `scripts/generate_encoder_8to3.py` builds a flat gate-level 8-to-3 priority encoder with a 256-row exhaustive table.
+- `scripts/generate_corridor_priority9.py` builds the staged-corridor 9-key encoder.
 - `scripts/generate_multiplier_4x4.py` builds a flat gate-level 4x4 array multiplier with all 256 operand pairs.
 - `scripts/generate_stress_256.py` builds the 256-gate direct-wire scale regression.
 - `scripts/flat_builder.py` centralizes flat-stage net construction and project emission.

@@ -136,10 +136,13 @@ def route_stage(
     used_points = {
         point for _, terminals in normalized_nets for point in terminals
     }
+    preexisting_points = {
+        point for wire in stage.wires for point in wire
+    }
     unconnected_pins = [
         pin.name
         for pin in stage.inputs + stage.outputs
-        if pin.point not in used_points
+        if pin.point not in used_points and pin.point not in preexisting_points
     ]
     if unconnected_pins:
         raise ValueError(
@@ -176,6 +179,8 @@ def route_stage(
             grid=router_grid,
             corridor_lanes=corridor_lanes,
         )
+        for start, end in stage.wires:
+            router.occupy_wire(start, end)
         for terminal, escape in escape_wires:
             router.occupy_wire(terminal, escape)
         for gate in stage.gates:
